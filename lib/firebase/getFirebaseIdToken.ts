@@ -14,7 +14,7 @@ export default async function getFirebaseIdToken(session: Session) {
   const expirationTime = session.user.firebase?.expirationTime;
 
   if (firebaseToken && Date.now() / 1000 <= expirationTime) {
-    console.log("reusing customToken");
+    // console.log("reusing customToken");
     return signInWithCustomToken(auth, firebaseToken);
   }
 

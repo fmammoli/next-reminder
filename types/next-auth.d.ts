@@ -30,6 +30,7 @@ declare module "next-auth" {
     user: {
       userId: string;
       isAnonymous: boolean;
+      randomColors?: string[];
       isNewUser: boolean;
       googleOAuth: {
         access_token: string;

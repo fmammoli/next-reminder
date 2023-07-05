@@ -10,7 +10,7 @@ export default function DeletReminderButton({
   id: string;
   remove: (id: string) => void;
 }) {
-  async function handleDelete() {
+  function handleDelete() {
     remove(id);
   }
   return <Button onClick={handleDelete}>Remove</Button>;

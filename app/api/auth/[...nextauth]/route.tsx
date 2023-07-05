@@ -90,9 +90,6 @@ export const authOptions: NextAuthOptions = {
         }
       }
       if (trigger === "signIn" || trigger === "signUp") {
-        if (trigger === "signUp") {
-          console.log(account);
-        }
         if (account && user) {
           if (user.isAnonymous === true && account.provider === "anon") {
             const verificationResult = await adminAuth.verifyIdToken(
@@ -142,7 +139,6 @@ export const authOptions: NextAuthOptions = {
     },
 
     session: async ({ session, token, user, trigger }) => {
-      console.log("Session trigger: " + trigger);
       return {
         ...session,
         user: { ...session.user, ...token },
