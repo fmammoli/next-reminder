@@ -16,22 +16,22 @@ import { Session } from "next-auth/core/types";
 import { revalidatePath } from "next/cache";
 
 export async function sendArray(data: Reminder[], session: Session) {
-  console.log("Sending reminder array to firebase.");
+  //console.log("Sending reminder array to firebase.");
 
   let firebaseLoggged = false;
 
   if (!auth.currentUser) {
-    console.log(
-      "SendArray: Auth.current user is null, logging in to firebase with custom token."
-    );
+    // console.log(
+    //   "SendArray: Auth.current user is null, logging in to firebase with custom token."
+    // );
 
     const firebaseUser = await getFirebaseIdToken(session);
     if (firebaseUser) firebaseLoggged = true;
   } else {
-    console.log(
-      "SendArray: Has firebase auth.current user with id: " +
-        auth.currentUser.uid
-    );
+    // console.log(
+    //   "SendArray: Has firebase auth.current user with id: " +
+    //     auth.currentUser.uid
+    // );
     firebaseLoggged = true;
   }
   if (firebaseLoggged) {
@@ -64,25 +64,22 @@ export async function sendArray(data: Reminder[], session: Session) {
 }
 
 export async function send(data: OptimisticReminder, session: Session) {
-  console.log("Sending new reminder to firebase.");
+  // console.log("Sending new reminder to firebase.");
 
   let firebaseLoggged = false;
 
-  console.log("action");
-  console.log(session);
-
   if (!auth.currentUser) {
-    console.log(
-      "Send: Auth.current user is null, logging in to firebase with custom token."
-    );
+    // console.log(
+    //   "Send: Auth.current user is null, logging in to firebase with custom token."
+    // );
 
     const firebaseUser = await getFirebaseIdToken(session);
-    console.log(firebaseUser);
+
     if (firebaseUser) firebaseLoggged = true;
   } else {
-    console.log(
-      "Send: Has firebase auth.current user with id: " + auth.currentUser.uid
-    );
+    // console.log(
+    //   "Send: Has firebase auth.current user with id: " + auth.currentUser.uid
+    // );
     firebaseLoggged = true;
   }
 
@@ -108,7 +105,7 @@ export async function send(data: OptimisticReminder, session: Session) {
       createdAt: data.createdAt,
     });
 
-    console.log("Send: New reminder send completed.");
+    // console.log("Send: New reminder send completed.");
 
     return {
       code: "Success",
@@ -121,26 +118,26 @@ export async function send(data: OptimisticReminder, session: Session) {
 }
 
 export async function deleteReminder(id: string, session: Session) {
-  console.log("Deleting reminder in firebase.");
+  // console.log("Deleting reminder in firebase.");
   let firebaseLoggged = false;
   if (!auth.currentUser) {
-    console.log(
-      "Send: Auth.current user is null, logging in to firebase with custom token."
-    );
+    // console.log(
+    //   "Send: Auth.current user is null, logging in to firebase with custom token."
+    // );
     const firebaseUser = await getFirebaseIdToken(session);
     if (firebaseUser) firebaseLoggged = true;
   } else {
-    console.log(
-      "Delete Reminder: Has firebase auth.current user with id: " +
-        auth.currentUser.uid
-    );
+    // console.log(
+    //   "Delete Reminder: Has firebase auth.current user with id: " +
+    //     auth.currentUser.uid
+    // );
     firebaseLoggged = true;
   }
 
   if (firebaseLoggged) {
     const userRef = doc(db, "users", session.user.userId);
     const path = `users/${userRef.id}/reminders/${id}`;
-    console.log(path);
+
     const reminderRef = doc(db, path);
     const res = await deleteDoc(reminderRef);
     return {
