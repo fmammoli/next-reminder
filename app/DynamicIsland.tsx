@@ -15,7 +15,7 @@ import { BadgeHelp } from "lucide-react";
 const HEIGHT = 40;
 
 const islandVariants = {
-  default: { width: 190, height: 40 },
+  default: { width: 200, height: 40 },
   long: { width: "min(40rem, 100%)", height: 40 },
   large: { width: "min(40rem, 100%)", height: "16rem" },
 };
@@ -39,10 +39,10 @@ export default function DynamicIsland({ children }: { children?: ReactNode }) {
   return (
     <div className="absolute left-0 px-8 w-full flex justify-center gap-2 rounded-full isolate z-50">
       <motion.div
-        className=" bg-black rounded-[22px] shadow-sm drop-shadow-md shadow-slate-600"
+        className=" bg-black rounded-[22px] shadow-sm drop-shadow-md shadow-slate-600 w-[200px]"
         style={{ willChange }}
         variants={islandVariants}
-        initial={{ width: 190 }}
+        initial={{ width: 200 }}
         animate={selectedId === null ? "default" : selectedId}
         transition={{
           type: "spring",
