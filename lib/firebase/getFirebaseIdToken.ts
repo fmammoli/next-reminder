@@ -15,9 +15,11 @@ export default async function getFirebaseIdToken(session: Session) {
 
   if (firebaseToken && Date.now() / 1000 <= expirationTime) {
     // console.log("reusing customToken");
-    return signInWithCustomToken(auth, firebaseToken);
+    const res = await signInWithCustomToken(auth, firebaseToken);
+    return res;
   }
 
   const token = await adminAuth.createCustomToken(session.user.email);
-  return signInWithCustomToken(auth, token);
+  const res = await signInWithCustomToken(auth, token);
+  return res;
 }

@@ -69,17 +69,25 @@ export async function send(data: OptimisticReminder, session: Session) {
     // console.log(
     //   "Send: Auth.current user is null, logging in to firebase with custom token."
     // );
-
-    const firebaseUser = await getFirebaseIdToken(session);
-
-    if (firebaseUser) firebaseLoggged = true;
+    try {
+      const firebaseUser = await getFirebaseIdToken(session);
+      if (firebaseUser) firebaseLoggged = true;
+    } catch (error) {
+      throw error;
+    }
   } else {
     // console.log(
     //   "Send: Has firebase auth.current user with id: " + auth.currentUser.uid
     // );
     firebaseLoggged = true;
   }
-
+  console.log(session);
+  if (!firebaseLoggged)
+    throw new Error(`Error verifying firestore session: ${session.user.email}`);
+  if (!session || !session.user.userId)
+    throw new Error(
+      `Error now session data firestore session: ${session.user}`
+    );
   if (firebaseLoggged && session.user.userId) {
     //Save reminders on a separete collection
     // const reminderCollectionRef = collection(db, "reminders").withConverter(

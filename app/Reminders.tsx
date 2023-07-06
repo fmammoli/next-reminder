@@ -21,8 +21,8 @@ export default async function Reminders() {
   async function getReminders(db: Firestore, userId: string) {
     const userRef = doc(db, "users", userId);
     const reminderCollectionRef = collection(
-      userRef,
-      "reminders"
+      db,
+      `users/${userId}/reminders`
     ).withConverter(reminderConverter);
 
     const queryRef = query(reminderCollectionRef, orderBy("createdAt", "desc"));
