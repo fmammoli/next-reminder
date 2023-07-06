@@ -59,8 +59,8 @@ export default function LoginHandler({
         // );
         console.log("AAA");
         if (data.isAnonymous === true) {
-          console.log("BBB");
           anonIdRef.current = data.uid;
+          console.log("BBB___ " + anonIdRef.current);
           router.refresh();
           // console.log(
           //   "There is a user and he is annonymous, should load from localstorage"

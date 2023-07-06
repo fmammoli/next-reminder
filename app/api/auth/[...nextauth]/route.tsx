@@ -92,6 +92,11 @@ export const authOptions: NextAuthOptions = {
       if (trigger === "signIn" || trigger === "signUp") {
         console.log(`JWT: Trigger: ${trigger}`);
         if (account && user) {
+          console.log("JWT: has Account and User");
+          console.log("JWT: Account");
+          console.log(account);
+          console.log("JWT User");
+          console.log(user);
           if (user.isAnonymous === true && account.provider === "anon") {
             const verificationResult = await adminAuth.verifyIdToken(
               user.idToken
@@ -111,17 +116,20 @@ export const authOptions: NextAuthOptions = {
                   providerId: verificationResult.provider_id,
                 },
               };
+            } else {
+              throw new Error("JWT Error: Firestore is null what!!!???");
             }
           } else {
             if (
               account.access_token &&
               account.id_token &&
               account.refresh_token &&
-              account.expires_at
+              account.expires_at &&
+              account.userId
             ) {
               return {
                 ...token,
-                userId: user.id,
+                userId: account.userId,
                 isAnonymous: false,
                 isNewUser: trigger === "signUp" ? true : false,
                 googleOAuth: {
@@ -131,6 +139,9 @@ export const authOptions: NextAuthOptions = {
                   expires_at: account.expires_at,
                 },
               };
+            } else {
+              console.log("JWT: Something is missing in account");
+              console.log(account);
             }
           }
         } else {
