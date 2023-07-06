@@ -90,6 +90,7 @@ export const authOptions: NextAuthOptions = {
         }
       }
       if (trigger === "signIn" || trigger === "signUp") {
+        console.log(`JWT: Trigger: ${trigger}`);
         if (account && user) {
           if (user.isAnonymous === true && account.provider === "anon") {
             const verificationResult = await adminAuth.verifyIdToken(
@@ -98,7 +99,7 @@ export const authOptions: NextAuthOptions = {
             if (firestore) {
               return {
                 ...token,
-                userId: user.id,
+                userId: account.userId,
                 isAnonymous: true,
                 isNewUser: trigger === "signUp" ? true : false,
                 firebase: {
@@ -132,9 +133,14 @@ export const authOptions: NextAuthOptions = {
               };
             }
           }
+        } else {
+          throw new Error(
+            `JWT Error: Either user or account is empty: User=> email:${user.email} , ${user.name} ||| Account: ${account?.userId} , ${account?.provider}`
+          );
         }
       }
-
+      console.log("JWT: No trigger");
+      console.log(token);
       return token;
     },
 

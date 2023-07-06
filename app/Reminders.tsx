@@ -57,8 +57,8 @@ export default async function Reminders() {
     console.log("Reminders: Fetch completed.");
   } else {
     //throw new Error(`Reminders: error session data is weird: ${session}`);
-    console.log(`Reminders: error session data is weird: ${session}`);
-    console.log(session);
+    // console.log(`Reminders: error session data is weird: ${session}`);
+    // console.log(session);
   }
   return (
     <>

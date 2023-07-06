@@ -18,8 +18,8 @@ export default async function Home() {
     console.log("Page: No session!");
   }
 
-  console.log(`Page: ${session?.user}`);
-  console.log(session);
+  // console.log(`Page: ${session?.user}`);
+  // console.log(session);
   return (
     <main className="p-10 bg-slate-50">
       <nav>

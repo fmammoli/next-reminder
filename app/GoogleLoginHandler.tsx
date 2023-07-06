@@ -59,6 +59,7 @@ export default function LoginHandler({
         // );
         console.log("AAA");
         if (data.isAnonymous === true) {
+          console.log("BBB");
           anonIdRef.current = data.uid;
           router.refresh();
           // console.log(
