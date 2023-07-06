@@ -42,9 +42,9 @@ export default async function Reminders() {
     session.user.isAnonymous === false
   ) {
     if (!auth.currentUser) {
-      console.log(
-        "Reminders: Auth.current user is null, logging in to firebase with custom token."
-      );
+      // console.log(
+      //   "Reminders: Auth.current user is null, logging in to firebase with custom token."
+      // );
       const firebaseUser = await getFirebaseIdToken(session);
     } else {
       console.log(
@@ -54,7 +54,7 @@ export default async function Reminders() {
     }
 
     reminders = await getReminders(db, session.user.userId);
-    console.log("Reminders: Fetch completed.");
+    // console.log("Reminders: Fetch completed.");
   } else {
     //throw new Error(`Reminders: error session data is weird: ${session}`);
     // console.log(`Reminders: error session data is weird: ${session}`);

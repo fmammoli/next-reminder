@@ -41,7 +41,8 @@ export default function OptimisticReminders({
   session: Session;
 }) {
   const [isAnon, setisAnon] = useState(!!session.user.isAnonymous);
-
+  console.log("Optimistic reminders: session comming from remindersServer");
+  console.log(session);
   const [localReminders, setLocalReminders] = useLocalStorageState<
     Reminder[] | []
   >(`my-reminders-anon-${session.user.email ? null : session.user.userId}`, {

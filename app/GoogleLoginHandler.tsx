@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect, useRef } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { signInAnonymously, signInWithCustomToken } from "firebase/auth";
@@ -19,54 +19,64 @@ export default function LoginHandler({
   isAnon?: boolean;
   children?: ReactNode;
 }) {
-  const { data: session } = useSession();
+  const { data: session, update } = useSession();
   const router = useRouter();
   const anonIdRef = useRef<null | string>(null);
 
-  console.log(`LoginHandler: ${session}`);
-  console.log(session);
+  const [authCurrent, setAuthCurrent] = useState(auth.currentUser);
+  const [isUserLogged, setIsUserLogged] = useState(false);
+
+  // console.log(`LoginHandler: ${session}`);
+  // console.log(session);
 
   useEffect(() => {
     async function anonFirebaseLogin() {
       // console.log("going to to create anon login");
       const loginResponse = await signInAnonymously(auth);
-      const loginIdtoken = await loginResponse.user.getIdToken();
-      console.log(loginResponse);
-      const credentials = {
-        idToken: loginIdtoken,
-        refreshToken: loginResponse.user.refreshToken,
-        isAnonymous: true,
-        uid: loginResponse.user.uid,
-        anonColors: randomColor({ count: 5, seed: loginResponse.user.uid }),
-      };
+      return loginResponse;
+    }
 
+    async function nextAuthAnonLogin(credentials: any) {
       const res = await signIn("anon", {
         redirect: false,
         ...credentials,
         callbackUrl: `${window.location.origin}`,
       });
-      // console.log("signed in annon");
+      return res;
     }
 
     const unsubscribe = auth.onAuthStateChanged(async (data) => {
+      // console.log("Auth stateChanged");
+      // console.log(data);
       if (data === null) {
         // console.log("Auth state date is null. Should create a new anon user.");
-        await anonFirebaseLogin();
+        const { user } = await anonFirebaseLogin();
+        const loginIdtoken = await user.getIdToken();
+        const credentials = {
+          idToken: loginIdtoken,
+          isAnonymous: true,
+          uid: user.uid,
+          anonColors: randomColor({ count: 5, seed: user.uid }),
+        };
+        const res = await nextAuthAnonLogin(credentials);
+
+        // setIsUserLogged(true);
         router.refresh();
       } else {
         // console.log(
         //   "Auth state is not null, should determine if it is anon or identified."
         // );
-        console.log("AAA");
+
         if (data.isAnonymous === true) {
           anonIdRef.current = data.uid;
-          console.log("BBB___ " + anonIdRef.current);
+
           router.refresh();
           // console.log(
           //   "There is a user and he is annonymous, should load from localstorage"
           // );
         }
       }
+      setAuthCurrent(data);
     });
 
     return unsubscribe;
@@ -83,20 +93,23 @@ export default function LoginHandler({
 
     const { token } = await response.json();
     const firebaseResponse = await signInWithCustomToken(auth, token);
-    console.log(firebaseResponse);
+    await auth.updateCurrentUser(firebaseResponse.user);
+
+    // console.log(firebaseResponse);
     return firebaseResponse;
   };
-  console.log("--------Start---------------");
-  console.log(session?.user);
-  console.log(auth.currentUser);
-  console.log("-----------End------------");
+  // console.log("--------Start---------------");
+  // console.log(session?.user);
+  // console.log(auth.currentUser);
+  // console.log("-----------End------------");
   if (
     session &&
     session.user.isAnonymous === false &&
     auth.currentUser?.isAnonymous
   ) {
+    // console.log("anonRef: " + anonIdRef.current);
     if (anonIdRef) {
-      console.log("going to sign in with firebase");
+      // console.log("going to sign in with firebase");
       signInWithFirebase(session).then((response) => {
         const localReminders = window.localStorage.getItem(
           `my-reminders-anon-${anonIdRef.current}`
@@ -129,10 +142,10 @@ export default function LoginHandler({
     <>
       <div>
         <h3>Firebase auth.currrentUser</h3>
-        <p> uid : {auth.currentUser?.uid + ""}</p>
-        <p>Email: {auth.currentUser?.email + ""}</p>
-        <p>DisplayName: {auth.currentUser?.displayName + ""}</p>
-        <p>isAnonymous: {auth.currentUser?.isAnonymous + ""}</p>
+        <p> uid : {authCurrent?.uid + ""}</p>
+        <p>Email: {authCurrent?.email + ""}</p>
+        <p>DisplayName: {authCurrent?.displayName + ""}</p>
+        <p>isAnonymous: {authCurrent?.isAnonymous + ""}</p>
       </div>
       <p>-------------------------</p>
       <div>

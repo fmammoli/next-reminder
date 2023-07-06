@@ -5,6 +5,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { adminAuth, firestore } from "@/lib/firebase/serverApp";
 import { FirestoreAdapter } from "@auth/firebase-adapter";
 import { Adapter } from "next-auth/adapters";
+import { getSession } from "next-auth/react";
 
 const config = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -90,21 +91,22 @@ export const authOptions: NextAuthOptions = {
         }
       }
       if (trigger === "signIn" || trigger === "signUp") {
-        console.log(`JWT: Trigger: ${trigger}`);
+        // console.log(`JWT: Trigger: ${trigger}`);
         if (account && user) {
-          console.log("JWT: has Account and User");
-          console.log("JWT: Account");
-          console.log(account);
-          console.log("JWT User");
-          console.log(user);
+          // console.log("JWT: has Account and User");
+          // console.log("JWT: Account");
+          // console.log(account);
+          // console.log("JWT User");
+          // console.log(user);
           if (user.isAnonymous === true && account.provider === "anon") {
             const verificationResult = await adminAuth.verifyIdToken(
               user.idToken
             );
+            // console.log("JWT: comming from anonimous");
             if (firestore) {
               return {
                 ...token,
-                userId: account.userId,
+                userId: user.id,
                 isAnonymous: true,
                 isNewUser: trigger === "signUp" ? true : false,
                 firebase: {
@@ -124,12 +126,11 @@ export const authOptions: NextAuthOptions = {
               account.access_token &&
               account.id_token &&
               account.refresh_token &&
-              account.expires_at &&
-              account.userId
+              account.expires_at
             ) {
               return {
                 ...token,
-                userId: account.userId,
+                userId: user.id,
                 isAnonymous: false,
                 isNewUser: trigger === "signUp" ? true : false,
                 googleOAuth: {
@@ -140,8 +141,8 @@ export const authOptions: NextAuthOptions = {
                 },
               };
             } else {
-              console.log("JWT: Something is missing in account");
-              console.log(account);
+              // console.log("JWT: Something is missing in account");
+              // console.log(account);
             }
           }
         } else {
@@ -150,8 +151,8 @@ export const authOptions: NextAuthOptions = {
           );
         }
       }
-      console.log("JWT: No trigger");
-      console.log(token);
+      // console.log("JWT: No trigger");
+      // console.log(token);
       return token;
     },
 
