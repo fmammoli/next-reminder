@@ -3,17 +3,14 @@ import { auth, db } from "@/lib/firebase/clientApp";
 import getFirebaseIdToken from "@/lib/firebase/getFirebaseIdToken";
 import reminderConverter from "@/lib/firebase/reminderFirestoreConverter";
 import { OptimisticReminder, Reminder } from "@/types/Reminder";
-import { signInWithCredential, signInWithCustomToken } from "@firebase/auth";
 import {
   collection,
   deleteDoc,
   doc,
-  getDoc,
   setDoc,
   writeBatch,
 } from "firebase/firestore";
 import { Session } from "next-auth/core/types";
-import { revalidatePath } from "next/cache";
 
 export async function sendArray(data: Reminder[], session: Session) {
   //console.log("Sending reminder array to firebase.");
@@ -83,7 +80,7 @@ export async function send(data: OptimisticReminder, session: Session) {
     firebaseLoggged = true;
   }
 
-  if (firebaseLoggged) {
+  if (firebaseLoggged && session.user.userId) {
     //Save reminders on a separete collection
     // const reminderCollectionRef = collection(db, "reminders").withConverter(
     //   reminderConverter
@@ -91,27 +88,34 @@ export async function send(data: OptimisticReminder, session: Session) {
     // const newReminderRef = doc(reminderCollectionRef);
 
     //Save reminder to user subcollection
-    const userRef = doc(db, "users", session.user.userId);
-    const reminderCollectionRef = collection(
-      userRef,
-      "reminders"
-    ).withConverter(reminderConverter);
-    const newReminderRef = doc(reminderCollectionRef);
+    try {
+      // const userRef = doc(db, "users", session.user.userId);
+      // const a = collection(db, "users", session.user.userId).withConverter(
+      //   reminderConverter
+      // );
+      const reminderCollectionRef = collection(
+        db,
+        `users/${session.user.userId}/reminders`
+      ).withConverter(reminderConverter);
+      const newReminderRef = doc(reminderCollectionRef);
 
-    await setDoc(newReminderRef, {
-      ...data,
-      id: newReminderRef.id,
-      userId: session.user.userId,
-      createdAt: data.createdAt,
-    });
+      await setDoc(newReminderRef, {
+        ...data,
+        id: newReminderRef.id,
+        userId: session.user.userId,
+        createdAt: data.createdAt,
+      });
 
-    // console.log("Send: New reminder send completed.");
+      // console.log("Send: New reminder send completed.");
 
-    return {
-      code: "Success",
-      message: `New document added with id: ${newReminderRef.id}`,
-      ok: true,
-    };
+      return {
+        code: "Success",
+        message: `New document added with id: ${newReminderRef.id}`,
+        ok: true,
+      };
+    } catch (error) {
+      throw error;
+    }
   } else {
     throw new Error(`Error verifying firestore session: ${session.user.email}`);
   }
@@ -135,16 +139,20 @@ export async function deleteReminder(id: string, session: Session) {
   }
 
   if (firebaseLoggged) {
-    const userRef = doc(db, "users", session.user.userId);
-    const path = `users/${userRef.id}/reminders/${id}`;
+    try {
+      const userRef = doc(db, "users", session.user.userId);
+      const path = `users/${userRef.id}/reminders/${id}`;
 
-    const reminderRef = doc(db, path);
-    const res = await deleteDoc(reminderRef);
-    return {
-      code: "Success",
-      message: `Deleted document with id: ${id}`,
-      ok: true,
-    };
+      const reminderRef = doc(db, path);
+      const res = await deleteDoc(reminderRef);
+      return {
+        code: "Success",
+        message: `Deleted document with id: ${id}`,
+        ok: true,
+      };
+    } catch (error) {
+      throw error;
+    }
   }
   throw new Error(`Error verifying firestore session: ${session.user.email}`);
 }
