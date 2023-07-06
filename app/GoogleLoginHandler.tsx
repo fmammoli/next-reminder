@@ -150,7 +150,7 @@ export default function LoginHandler({
       <p>-------------------------</p>
       <div>
         <h3>NextAuth Session</h3>
-        <p>userId: {session?.user.userId + ""}</p>
+        <p>id: {session?.user.userId + ""}</p>
         <p>Email: {session?.user.email + ""}</p>
         <p>Name: {session?.user.name + ""}</p>
         <p>isAnonymous: {session?.user.isAnonymous + ""}</p>

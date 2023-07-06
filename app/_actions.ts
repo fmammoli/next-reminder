@@ -2,6 +2,7 @@
 import { auth, db } from "@/lib/firebase/clientApp";
 import getFirebaseIdToken from "@/lib/firebase/getFirebaseIdToken";
 import reminderConverter from "@/lib/firebase/reminderFirestoreConverter";
+import { adminAuth, adminDb } from "@/lib/firebase/serverApp";
 import { OptimisticReminder, Reminder } from "@/types/Reminder";
 import {
   collection,
@@ -11,6 +12,19 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { Session } from "next-auth/core/types";
+import { revalidatePath } from "next/cache";
+
+export async function deleteUsers() {
+  try {
+    const users = await adminAuth.listUsers(30);
+    const uids = users.users.map((user) => user.uid);
+    const res = await adminAuth.deleteUsers(uids);
+
+    return res;
+  } catch (error) {
+    throw error;
+  }
+}
 
 export async function sendArray(data: Reminder[], session: Session) {
   //console.log("Sending reminder array to firebase.");
@@ -49,7 +63,7 @@ export async function sendArray(data: Reminder[], session: Session) {
     });
 
     const res = await batch.commit();
-
+    revalidatePath("");
     return {
       code: "Success",
       message: `New documents added to user`,

@@ -5,7 +5,9 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { adminAuth, firestore } from "@/lib/firebase/serverApp";
 import { FirestoreAdapter } from "@auth/firebase-adapter";
 import { Adapter } from "next-auth/adapters";
-import { getSession } from "next-auth/react";
+import randomColor from "randomcolor";
+
+const DEBUG = false;
 
 const config = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -33,7 +35,7 @@ export const authOptions: NextAuthOptions = {
       },
     }),
     CredentialsProvider({
-      id: "anon",
+      id: "anonymousSignIn",
       credentials: {
         idToken: { label: "accessToken", type: "text", placeholder: "0x0" },
         refreshToken: {
@@ -41,11 +43,7 @@ export const authOptions: NextAuthOptions = {
           type: "text",
           placeholder: "0x0",
         },
-        isAnonymous: {
-          label: "anonymous",
-          placeholder: "true",
-          type: "boolean",
-        },
+
         uid: {
           lable: "uid",
           type: "text",
@@ -56,11 +54,13 @@ export const authOptions: NextAuthOptions = {
         if (credentials) {
           return {
             id: credentials.uid,
-            userId: credentials.uid,
             idToken: credentials.idToken,
             refreshToken: credentials.refreshToken,
             name: "Anonymous user :)",
+            firebaseLogin: true,
             isAnonymous: true,
+            randomColors: randomColor({ count: 5 }),
+            createdAt: new Date(),
           };
         }
         return null;
@@ -69,98 +69,119 @@ export const authOptions: NextAuthOptions = {
   ],
 
   callbacks: {
-    async jwt({ token, account, trigger, user, session, profile }) {
+    async jwt({ token, user, account, profile, trigger, session }) {
+      if (DEBUG) {
+        console.log(`JWT: Trigger: ${trigger}`);
+        console.log("JWT: This is token:");
+        console.log(token);
+        console.log("----------------------------------------");
+        console.log("JWT: This is user:");
+        console.log(user);
+        console.log("----------------------------------------");
+        console.log("JWT: This is account:");
+        console.log(account);
+        console.log("----------------------------------------");
+        console.log("JWT: This is profile:");
+        console.log(profile);
+        console.log("----------------------------------------");
+        console.log("JWT: This is session:");
+        console.log(session);
+        console.log("----------------------------------------");
+      }
       if (trigger === "update") {
-        try {
-          const { exp } = await adminAuth.verifyIdToken(session.idToken);
-          return {
-            ...token,
-            firebase: {
-              ...session.firebase,
-              customToken: session.customToken,
-              idToken: session.idToken,
-              expirationTime: exp,
-            },
-            updated: true,
-          };
-        } catch (error) {
-          console.log(
-            "Error verifying idToken after firebase loginWithCustomToken."
-          );
-          throw error;
+        if (session) {
+          try {
+            const response = await adminAuth.verifyIdToken(session.idToken);
+
+            return {
+              ...token,
+              firebase: { ...session, expirationTime: response.exp },
+            };
+          } catch (error) {}
         }
       }
-      if (trigger === "signIn" || trigger === "signUp") {
-        // console.log(`JWT: Trigger: ${trigger}`);
-        if (account && user) {
-          // console.log("JWT: has Account and User");
-          // console.log("JWT: Account");
-          // console.log(account);
-          // console.log("JWT User");
-          // console.log(user);
-          if (user.isAnonymous === true && account.provider === "anon") {
-            const verificationResult = await adminAuth.verifyIdToken(
-              user.idToken
-            );
-            // console.log("JWT: comming from anonimous");
-            if (firestore) {
-              return {
-                ...token,
-                userId: user.id,
-                isAnonymous: true,
-                isNewUser: trigger === "signUp" ? true : false,
-                firebase: {
-                  customToken: null,
-                  idToken: user.idToken,
-                  refreshToken: user.refreshToken,
-                  isAnonymous: true,
-                  expirationTime: verificationResult.exp,
-                  providerId: verificationResult.provider_id,
-                },
-              };
-            } else {
-              throw new Error("JWT Error: Firestore is null what!!!???");
-            }
-          } else {
-            if (
-              account.access_token &&
-              account.id_token &&
-              account.refresh_token &&
-              account.expires_at
-            ) {
-              return {
-                ...token,
-                userId: user.id,
-                isAnonymous: false,
-                isNewUser: trigger === "signUp" ? true : false,
-                googleOAuth: {
-                  access_token: account.access_token,
-                  id_token: account.id_token,
-                  refresh_token: account.refresh_token,
-                  expires_at: account.expires_at,
-                },
-              };
-            } else {
-              // console.log("JWT: Something is missing in account");
-              // console.log(account);
-            }
+
+      if (trigger === "signUp") {
+        if (account) {
+          if (
+            account.provider !== "anonymousSignIn" &&
+            account.provider === "google" &&
+            account.type === "oauth"
+          ) {
+            const newToken = {
+              ...token,
+              id: user.id,
+              userId: user.id,
+              isAnonymous: false,
+              firebaseLogin: false,
+              googleLogin: true,
+              isNewUser: true,
+              googleOatuh: {
+                ...account,
+              },
+            };
+            return newToken;
           }
-        } else {
-          throw new Error(
-            `JWT Error: Either user or account is empty: User=> email:${user.email} , ${user.name} ||| Account: ${account?.userId} , ${account?.provider}`
-          );
         }
       }
-      // console.log("JWT: No trigger");
-      // console.log(token);
+      if (trigger === "signIn") {
+        if (account) {
+          if (
+            account.provider === "anonymousSignIn" &&
+            account.type === "credentials"
+          ) {
+            //Data here is comming from anon sign in in Firebase and its data should be put in token
+            return {
+              ...token,
+              id: user.id,
+              userId: user.id,
+              isAnonymous: user.isAnonymous,
+              firebaseLogin: user.firebaseLogin,
+              googleLogin: false,
+              randomColors: user.randomColors,
+              firebase: { ...user },
+            };
+          } else if (
+            account.provider !== "anonymousSignIn" &&
+            account.provider === "google" &&
+            account.type === "oauth"
+          ) {
+            const newToken = {
+              ...token,
+              id: user.id,
+              userId: user.id,
+              isAnonymous: false,
+              firebaseLogin: false,
+              googleLogin: true,
+              isNewUser: true,
+              googleOatuh: {
+                ...account,
+              },
+            };
+            return newToken;
+          }
+        }
+      }
       return token;
     },
+    async session({ session, token, user, newSession, trigger }) {
+      if (DEBUG) {
+        console.log(`Session: Trigger: ${trigger}`);
+        console.log("Session: This is session:");
+        console.log(session);
+        console.log("----------------------------------------");
+        console.log("Session: This is token:");
+        console.log(token);
+        console.log("----------------------------------------");
+        console.log("Session: This is user:");
+        console.log(user);
+        console.log("----------------------------------------");
+        console.log("Session: This is newSession:");
+        console.log(newSession);
+        console.log("----------------------------------------");
+      }
 
-    session: async ({ session, token, user, trigger }) => {
-      return {
-        ...session,
-        user: { ...session.user, ...token },
-      };
+      return { ...session, user: { ...session.user, ...token } };
     },
   },
 };

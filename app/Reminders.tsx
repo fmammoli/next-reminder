@@ -62,12 +62,10 @@ export default async function Reminders() {
   }
   return (
     <>
-      {session?.user && (
-        <OptimisticReminders
-          reminders={reminders}
-          session={session}
-        ></OptimisticReminders>
-      )}
+      <OptimisticReminders
+        reminders={reminders}
+        serverSession={session}
+      ></OptimisticReminders>
     </>
   );
 }

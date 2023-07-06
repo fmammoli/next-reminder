@@ -26,15 +26,20 @@ export default function DynamicIsland({ children }: { children?: ReactNode }) {
 
   const { data: session } = useSession();
 
-  const boringAvatar = (
-    <BoringAvatar
-      size={60}
-      name={session?.user.userId}
-      variant="beam"
-      colors={session?.user.randomColors}
-      square
-    ></BoringAvatar>
-  );
+  let boringAvatar = null;
+  if (session?.user.isAnonymous) {
+    boringAvatar = (
+      <BoringAvatar
+        size={60}
+        name={`${session?.user.userId} ${new Date(
+          session?.user.firebase.createdAt || ""
+        ).toDateString()}`}
+        variant="beam"
+        colors={session?.user.randomColors}
+        square
+      ></BoringAvatar>
+    );
+  }
 
   return (
     <div className="absolute left-0 px-8 w-full flex justify-center gap-2 rounded-full isolate z-50">

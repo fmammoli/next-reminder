@@ -19,6 +19,8 @@ declare module "next-auth" {
     isAnonymous: boolean;
     idToken: string;
     refreshToken: string;
+    firebaseLogin: boolean;
+    randomColors: string[];
   }
 }
 
@@ -30,6 +32,8 @@ declare module "next-auth" {
     user: {
       userId: string;
       isAnonymous: boolean;
+      firebaseLogin: boolean;
+      googleLogin: boolean;
       randomColors?: string[];
       isNewUser: boolean;
       googleOAuth: {
@@ -44,6 +48,7 @@ declare module "next-auth" {
         idToken: string;
         expirationTime: number;
         isAnonymous: boolean;
+        createdAt?: Date;
       };
     } & DefaultSession["user"];
   }

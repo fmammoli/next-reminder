@@ -10,7 +10,7 @@ export default function TodoForm({
   session,
 }: {
   handleAdd: (newReminder: OptimisticReminder) => void;
-  session: Session;
+  session: Session | null;
 }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
@@ -42,8 +42,10 @@ export default function TodoForm({
 
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="flex gap-2">
-      <Input name="text" type="text"></Input>
-      <Button type="submit">Send</Button>
+      <Input name="text" type="text" disabled={!session ? true : false}></Input>
+      <Button type="submit" disabled={!session ? true : false}>
+        Send
+      </Button>
     </form>
   );
 }

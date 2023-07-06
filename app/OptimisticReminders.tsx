@@ -1,7 +1,7 @@
 "use client";
 
 import { OptimisticReminder, Reminder } from "@/types/Reminder";
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import { experimental_useOptimistic as useOptimistic } from "react";
 import TodoForm from "./TodoForm";
 import ReminderItem from "./ReminderItem";
@@ -9,7 +9,7 @@ import useLocalStorageState from "use-local-storage-state";
 import { Session } from "next-auth";
 import { deleteReminder, send } from "./_actions";
 import { useRouter } from "next/navigation";
-import { Calendar } from "@/components/ui/calendar";
+import { useSession } from "next-auth/react";
 
 type SendingReminder = {
   reminder: OptimisticReminder;
@@ -35,37 +35,42 @@ type deleteAction = {
 
 export default function OptimisticReminders({
   reminders,
-  session,
+  serverSession,
 }: {
   reminders: Reminder[];
-  session: Session;
+  serverSession?: Session | null;
 }) {
-  const [isAnon, setisAnon] = useState(!!session.user.isAnonymous);
+  const { data: session, status } = useSession();
+
   console.log("Optimistic reminders: session comming from remindersServer");
-  console.log(session);
+  // console.log(session);
+  // const [localReminders, setLocalReminders] = useLocalStorageState<
+  //   Reminder[] | []
+  // >(
+  //   `my-reminders-anon-${
+  //     session?.user.isAnonymous ? session.user.userId : null
+  //   }`,
+  //   {
+  //     defaultValue: [],
+  //   }
+  // );
+
   const [localReminders, setLocalReminders] = useLocalStorageState<
     Reminder[] | []
-  >(`my-reminders-anon-${session.user.email ? null : session.user.userId}`, {
+  >(`my-reminders-anon-test`, {
     defaultValue: [],
   });
 
   const router = useRouter();
 
-  // //To solve hydration discrepancies in case of local storage only.
-  // useEffect(() => {
-  //   if (session.user.isAnonymous) {
-  //     setisAnon(true);
-  //   }
-  // }, [session]);
-
   const [optimisticReminders, dispatchOptimisticReminders] = useOptimistic<
     OptimisticReminders,
     addAction | addLocalAction | deleteAction
-  >(isAnon ? localReminders : reminders, (state, action) => {
+  >(session?.user.isAnonymous ? localReminders : reminders, (state, action) => {
     switch (action.type) {
       case "add":
         return [{ reminder: action.newReminder, sending: true }, ...state];
-        break;
+
       case "delete":
         return state.filter((item: Reminder | SendingReminder) => {
           if ((item as Reminder).id) {
@@ -74,57 +79,61 @@ export default function OptimisticReminders({
             return true;
           }
         });
-        break;
+
       default:
         return state;
-        break;
     }
   });
   const formRef = useRef();
 
   async function handleAdd(newReminder: OptimisticReminder) {
-    if (session.user.isAnonymous) {
-      return setLocalReminders((state) => {
-        return [
-          {
-            ...newReminder,
-            userId: session.user.userId,
-            id: (state.length + 1).toString(),
-          },
-          ...state,
-        ];
-      });
-    } else {
-      dispatchOptimisticReminders({ type: "add", newReminder: newReminder });
-      const response = await send(newReminder, session);
-      if (response?.ok) {
-        console.log("Send response!");
-        router.refresh();
+    if (session) {
+      if (session.user.isAnonymous) {
+        return setLocalReminders((state) => {
+          return [
+            {
+              ...newReminder,
+              userId: session.user.userId,
+              id: (state.length + 1).toString(),
+            },
+            ...state,
+          ];
+        });
       } else {
-        console.log("Something did not work");
+        dispatchOptimisticReminders({ type: "add", newReminder: newReminder });
+
+        const response = await send(newReminder, session);
+        if (response?.ok) {
+          console.log("Send response!");
+          router.refresh();
+        } else {
+          console.log("Something did not work");
+        }
       }
     }
   }
 
   async function handleRemove(id: string) {
-    if (session.user.isAnonymous) {
-      setLocalReminders((state) => {
-        return state.filter((item: Reminder | SendingReminder) => {
-          if ((item as Reminder).id) {
-            return (item as Reminder).id !== id;
-          } else {
-            return true;
-          }
+    if (session) {
+      if (session.user.isAnonymous) {
+        setLocalReminders((state) => {
+          return state.filter((item: Reminder | SendingReminder) => {
+            if ((item as Reminder).id) {
+              return (item as Reminder).id !== id;
+            } else {
+              return true;
+            }
+          });
         });
-      });
-    } else {
-      dispatchOptimisticReminders({ type: "delete", id: id });
-      const response = await deleteReminder(id, session);
-      if (response?.ok) {
-        console.log("Delete response!");
-        router.refresh();
       } else {
-        console.log("Something did not work");
+        dispatchOptimisticReminders({ type: "delete", id: id });
+        const response = await deleteReminder(id, session);
+        if (response?.ok) {
+          console.log("Delete response!");
+          router.refresh();
+        } else {
+          console.log("Something did not work");
+        }
       }
     }
   }
