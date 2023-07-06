@@ -32,8 +32,8 @@ export default async function Home() {
       {/* <div>
         <TodoForm></TodoForm>
       </div> */}
-      <div className="mt-20">
-        <Calendar mode="default" fixedWeeks></Calendar>
+      <div className="mt-20 max-w-lg mx-auto">
+        <Calendar mode="default" fixedWeeks className="mx-auto"></Calendar>
         <Reminders></Reminders>
       </div>
     </main>
