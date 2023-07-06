@@ -135,10 +135,6 @@ export default function OptimisticReminders({
       </div>
 
       <div>
-        {session.user.isNewUser && optimisticReminders.length === 0 && (
-          <p>Loading...</p>
-        )}
-
         <ul>
           {optimisticReminders.map(
             (item: Reminder | SendingReminder, index) => {

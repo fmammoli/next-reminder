@@ -6,18 +6,20 @@ import DynamicIsland from "./DynamicIsland";
 import { Calendar } from "@/components/ui/calendar";
 
 export default async function Home() {
-  // const session = await getServerSession(authOptions);
-  // let logged = false;
-  // let isAnon = false;
-  // if (session) {
-  //   if (session.user) {
-  //     logged = true;
-  //     isAnon = session.user.isAnonymous === true ? true : false;
-  //   }
-  // } else {
-  //   console.log("Page: No session!");
-  // }
+  const session = await getServerSession(authOptions);
+  let logged = false;
+  let isAnon = false;
+  if (session) {
+    if (session.user) {
+      logged = true;
+      isAnon = session.user.isAnonymous === true ? true : false;
+    }
+  } else {
+    console.log("Page: No session!");
+  }
 
+  console.log(`Page: ${session?.user}`);
+  console.log(session);
   return (
     <main className="p-10 bg-slate-50">
       <nav>
