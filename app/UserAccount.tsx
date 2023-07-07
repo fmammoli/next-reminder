@@ -8,7 +8,7 @@ import { ReactNode } from "react";
 
 export default function UserAccount({
   setSelectedId,
-  name,
+  name = "Anonymous User :)",
   email = "anon@anonymous.com",
   image,
   anonColors,
@@ -17,7 +17,9 @@ export default function UserAccount({
   boringAvatar,
   isLogged = false,
 }: {
-  setSelectedId: React.Dispatch<React.SetStateAction<string | null>>;
+  setSelectedId: React.Dispatch<
+    React.SetStateAction<"initial" | "default" | "large" | "long" | "loading">
+  >;
   name?: string | null;
   email?: string | null;
   image?: string | null;
@@ -28,11 +30,11 @@ export default function UserAccount({
   isLogged?: boolean;
 }) {
   function handleClick() {
-    setSelectedId(null);
+    setSelectedId("default");
   }
 
   return (
-    <div className="flex flex-col h-64 p-1">
+    <div className="flex flex-col p-1">
       <div className="flex items-center justify-between ">
         <div className="flex gap-2 items-center">
           <div className="relative">
