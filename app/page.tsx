@@ -19,7 +19,7 @@ export default async function Home() {
   // console.log(`Page: ${session?.user}`);
   // console.log(session);
   return (
-    <main className="p-10 bg-slate-50">
+    <main className="p-10">
       <nav>
         <FirebaseSessionHandler>
           <DynamicIsland></DynamicIsland>

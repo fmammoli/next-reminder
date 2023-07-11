@@ -12,12 +12,6 @@ import Icon3d from "./Icon3d";
 
 const HEIGHT = 40;
 
-const islandVariants = {
-  default: { width: 200, gridTemplateRows: "0fr" },
-  long: { width: "min(40rem, 100%)", gridTemplateRows: "1fr" },
-  large: { width: "min(40rem, 100%)", gridTemplateRows: "1fr" },
-};
-
 export default function DynamicIsland({ children }: { children?: ReactNode }) {
   const [selectedId, setSelectedId] = useState<
     "initial" | "default" | "large" | "long" | "loading"
@@ -42,17 +36,45 @@ export default function DynamicIsland({ children }: { children?: ReactNode }) {
   }
 
   const variants = {
-    loading: { width: "4rem", gridTemplateRows: "0fr" },
-    default: { width: "9rem", gridTemplateRows: "0fr" },
+    loading: {
+      width: "4rem",
+      gridTemplateRows: "0fr",
+      transition: {
+        type: "spring",
+        stiffness: 120,
+        damping: 10,
+        delayChildren: 0.6,
+      },
+    },
+    default: {
+      width: "9rem",
+      gridTemplateRows: "0fr",
+      transition: {
+        type: "spring",
+        stiffness: 140,
+        damping: 14,
+        delayChildren: 0.6,
+      },
+    },
     long: {
       width: "20rem",
       transition: {
         type: "spring",
-        stiffness: 400,
-        damping: 30,
+        stiffness: 120,
+        damping: 10,
+        delayChildren: 0.6,
       },
     },
-    large: { width: "22rem", gridTemplateRows: "1fr" },
+    large: {
+      width: "22rem",
+      gridTemplateRows: "1fr",
+      transition: {
+        type: "spring",
+        stiffness: 180,
+        damping: 20,
+        delayChildren: 0.6,
+      },
+    },
   };
 
   useEffect(() => {
@@ -66,66 +88,47 @@ export default function DynamicIsland({ children }: { children?: ReactNode }) {
   if (selectedId === "long") text = "Expand with some details";
 
   return (
-    <div className="z-10 absolute top-0 left-0 mt-10 w-full isolate ">
+    <div className="z-10 absolute top-0 left-0 mt-10 w-full isolate">
       <div className="relative flex justify-center gap-2">
         <motion.div
           layout
           className={"grid rounded-[22px] bg-black relative z-10 "}
           variants={variants}
           animate={selectedId}
-          initial={{
-            width: "4rem",
-            gridTemplateRows: "0fr",
-          }}
-          transition={{
-            type: "spring",
-            stiffness: 120,
-            damping: 14,
-          }}
+          initial={"loading"}
         >
-          <motion.div layout className="min-h-[2.5rem]">
-            <AnimatePresence mode="wait">
-              {selectedId === "loading" && (
-                <motion.div
-                  initial={{ width: "4rem" }}
-                  exit={{ width: "10rem" }}
-                  className="h-9"
-                ></motion.div>
-              )}
-            </AnimatePresence>
-            <AnimatePresence>
-              {selectedId !== "loading" && (
-                <motion.div
-                  className="flex justify-start gap-1 px-2 item-center h-10 relative"
-                  hidden={selectedId === "large" ? true : false}
-                  initial={{ opacity: 0, zIndex: 0 }}
-                  animate={{
-                    opacity: 1,
-                    zIndex: selectedId === "large" ? -1 : 0,
-                  }}
-                  transition={{ duration: 2, delay: 0.8 }}
-                >
-                  <div className="h-9 w-9">
-                    <Icon3d></Icon3d>
-                  </div>
+          <motion.div className="min-h-[2.5rem] min-w-[8rem]">
+            <motion.div
+              className="flex justify-start gap-1 px-2 item-center h-10 relative"
+              hidden={selectedId === "large" ? true : false}
+              initial={{ opacity: 0, zIndex: 0 }}
+              animate={{
+                opacity:
+                  selectedId === "default" || selectedId === "long" ? 1 : 0,
+                zIndex:
+                  selectedId === "default" || selectedId === "long" ? 0 : -1,
+                transition: { delay: 0.3 },
+              }}
+            >
+              <motion.div className="h-10 w-10">
+                <Icon3d></Icon3d>
+              </motion.div>
 
-                  <Button
-                    className="py-0 pl-1 h-auto bg-black "
-                    onClick={() => {
-                      {
-                        setSelectedId((prev) => {
-                          if (prev === "default") return "long";
-                          if (prev === "long") return "default";
-                          return prev;
-                        });
-                      }
-                    }}
-                  >
-                    <motion.p>{text}</motion.p>
-                  </Button>
-                </motion.div>
-              )}
-            </AnimatePresence>
+              <Button
+                className="py-0 pl-1 h-auto bg-black "
+                onClick={() => {
+                  {
+                    setSelectedId((prev) => {
+                      if (prev === "default") return "long";
+                      if (prev === "long") return "default";
+                      return prev;
+                    });
+                  }
+                }}
+              >
+                <motion.p>{text}</motion.p>
+              </Button>
+            </motion.div>
 
             <AnimatePresence>
               {false && (
@@ -185,27 +188,30 @@ export default function DynamicIsland({ children }: { children?: ReactNode }) {
           <AnimatePresence mode="popLayout">
             {selectedId === "default" && status === "authenticated" && (
               <motion.div
-                className={"rounded-[22px] bg-yellow-400 h-10 relative -z-10"}
+                className={" h-10 relative -z-10 overflow-hidden"}
                 initial={{ x: -60, opacity: 0, zIndex: -10 }}
-                animate={{ x: 0, opacity: 1, zIndex: 1 }}
+                animate={{
+                  x: 0,
+                  opacity: 1,
+                  zIndex: 1,
+                  transition: { delay: 0.6 },
+                }}
                 exit={{
                   x: -100,
                   opacity: 0,
-                  transition: { delay: 0 },
                   zIndex: -10,
                 }}
                 transition={{
                   type: "spring",
-                  stiffness: 300,
-                  damping: 20,
-                  delay: 0.8,
+                  stiffness: 120,
+                  damping: 10,
                 }}
               >
                 <Button
                   className="rounded-full p-0 h-auto"
                   onClick={() => setSelectedId((prev) => "large")}
                 >
-                  <Avatar className="aspect-square h-10 w-10">
+                  <Avatar className=" h-10 w-10">
                     {session?.user?.image && (
                       <AvatarImage src={session.user.image} />
                     )}
