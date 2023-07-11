@@ -1,11 +1,7 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "./api/auth/[...nextauth]/route";
 import Reminders from "./Reminders";
-import GoogleLoginHandler from "./GoogleLoginHandler";
 import DynamicIsland from "./DynamicIsland";
 import { Calendar } from "@/components/ui/calendar";
 import FirebaseSessionHandler from "./FirebaseSessionHandler";
-import Icon3d from "./Icon3d";
 
 export default async function Home() {
   // const session = await getServerSession(authOptions);

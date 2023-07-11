@@ -43,16 +43,16 @@ export default function DynamicIsland({ children }: { children?: ReactNode }) {
 
   const variants = {
     loading: { width: "4rem", gridTemplateRows: "0fr" },
-    default: { width: "10rem", gridTemplateRows: "0fr" },
+    default: { width: "9rem", gridTemplateRows: "0fr" },
     long: {
-      width: "30rem",
+      width: "20rem",
       transition: {
         type: "spring",
         stiffness: 400,
         damping: 30,
       },
     },
-    large: { width: "30rem", gridTemplateRows: "1fr" },
+    large: { width: "22rem", gridTemplateRows: "1fr" },
   };
 
   useEffect(() => {
@@ -61,6 +61,10 @@ export default function DynamicIsland({ children }: { children?: ReactNode }) {
     }
   }, [status]);
   console.log(selectedId);
+  let text = "";
+  if (selectedId === "default") text = "Expand";
+  if (selectedId === "long") text = "Expand with some details";
+
   return (
     <div className="z-10 absolute top-0 left-0 mt-10 w-full isolate ">
       <div className="relative flex justify-center gap-2">
@@ -70,7 +74,7 @@ export default function DynamicIsland({ children }: { children?: ReactNode }) {
           variants={variants}
           animate={selectedId}
           initial={{
-            width: "8rem",
+            width: "4rem",
             gridTemplateRows: "0fr",
           }}
           transition={{
@@ -117,12 +121,7 @@ export default function DynamicIsland({ children }: { children?: ReactNode }) {
                       }
                     }}
                   >
-                    <AnimatePresence mode="sync">
-                      {selectedId === "default" && <motion.p>Expand</motion.p>}
-                      {selectedId === "long" && (
-                        <motion.p>Expand with some more details</motion.p>
-                      )}
-                    </AnimatePresence>
+                    <motion.p>{text}</motion.p>
                   </Button>
                 </motion.div>
               )}
