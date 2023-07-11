@@ -5,6 +5,7 @@ import GoogleLoginHandler from "./GoogleLoginHandler";
 import DynamicIsland from "./DynamicIsland";
 import { Calendar } from "@/components/ui/calendar";
 import FirebaseSessionHandler from "./FirebaseSessionHandler";
+import Icon3d from "./Icon3d";
 
 export default async function Home() {
   // const session = await getServerSession(authOptions);
@@ -32,7 +33,7 @@ export default async function Home() {
       {/* <div>
         <TodoForm></TodoForm>
       </div> */}
-      <div className="mt-20 max-w-lg mx-auto">
+      <div className="mt-20 max-w-lg mx-auto h-96">
         <Calendar mode="default" fixedWeeks className="mx-auto"></Calendar>
         <Reminders></Reminders>
       </div>
