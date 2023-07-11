@@ -66,7 +66,7 @@ export default function DynamicIsland({ children }: { children?: ReactNode }) {
       },
     },
     large: {
-      width: "22rem",
+      width: "20rem",
       gridTemplateRows: "1fr",
       transition: {
         type: "spring",
