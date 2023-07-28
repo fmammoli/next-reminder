@@ -29,7 +29,7 @@ function ReminderItemOrigin({
           </p>
           <p className="font-thin">
             Due at:
-            {new Date(dueDateTime).toLocaleDateString("pt-Br", {
+            {new Date(dueDateTime).toLocaleTimeString("pt-Br", {
               hour: "2-digit",
               minute: "2-digit",
             })}
