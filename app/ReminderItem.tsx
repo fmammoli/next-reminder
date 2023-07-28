@@ -2,6 +2,7 @@ import { Timestamp } from "firebase/firestore";
 import DeletReminderButton from "./DeleteReminderButton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { memo, useMemo } from "react";
+import { parseISO } from "date-fns";
 
 function ReminderItemOrigin({
   id,
@@ -26,7 +27,13 @@ function ReminderItemOrigin({
           <p className="font-thin">
             Created At:{sending ? "Sending ..." : createdAt}
           </p>
-          <p className="font-thin">Due Date: {dueDateTime}</p>
+          <p className="font-thin">
+            Due at:
+            {new Date(dueDateTime).toLocaleDateString("pt-Br", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </p>
         </div>
         {id ? (
           <DeletReminderButton
