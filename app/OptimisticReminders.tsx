@@ -183,39 +183,34 @@ export default function OptimisticReminders({
                       ? (item as SendingReminder).reminder.text
                       : (item as Reminder).text
                   }
-                  createdAt={new Date(
-                    (item as Reminder).createdAt ??
-                      (item as SendingReminder).reminder.createdAt
-                  ).toLocaleString("pt-Br", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+                  // createdAt={new Date(
+                  //   (item as Reminder).createdAt ??
+                  //     (item as SendingReminder).reminder.createdAt
+                  // ).toLocaleString("pt-Br", {
+                  //   hour: "2-digit",
+                  //   minute: "2-digit",
+                  // })}
+                  createdAt={
+                    (item as Reminder).createdAt?.toString() ??
+                    (item as SendingReminder).reminder.createdAt.toString()
+                  }
                   sending={(item as SendingReminder).sending}
                   id={
                     (item as SendingReminder).sending
                       ? null
                       : (item as Reminder).id
                   }
-                  // dueDateTime={
-                  //   (item as SendingReminder).sending
-                  //     ? (
-                  //         item as SendingReminder
-                  //       ).reminder.dueDateTime.toLocaleString("pt-Br", {
-                  //         hour: "2-digit",
-                  //         minute: "2-digit",
-                  //       })
-                  //     : (item as Reminder).dueDateTime.toLocaleString("pt-Br", {
-                  //         hour: "2-digit",
-                  //         minute: "2-digit",
-                  //       })
-                  // }
-                  dueDateTime={new Date(
-                    (item as Reminder).dueDateTime ??
-                      (item as SendingReminder).reminder.dueDateTime
-                  ).toLocaleString("pt-Br", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+                  // dueDateTime={new Date(
+                  //   (item as Reminder).dueDateTime ??
+                  //     (item as SendingReminder).reminder.dueDateTime
+                  // ).toLocaleString("pt-Br", {
+                  //   hour: "2-digit",
+                  //   minute: "2-digit",
+                  // })}
+                  dueDateTime={
+                    (item as Reminder).dueDateTime?.toString() ??
+                    (item as SendingReminder).reminder.dueDateTime.toString()
+                  }
                   handleRemove={handleRemove}
                 ></ReminderItem>
               </div>

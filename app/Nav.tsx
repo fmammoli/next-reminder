@@ -114,12 +114,15 @@ export default function Nav() {
                   animate={{ opacity: 1 }}
                   className="whitespace-nowrap"
                 >
-                  {searchParamsDate.toLocaleDateString("pt-Br", {
+                  {/* {searchParamsDate.toLocaleDateString("pt-Br", {
                     weekday: "long",
                     day: "2-digit",
                     month: "long",
                     year: "numeric",
-                  })}
+                  })} */}
+                  {`${searchParams.get("day")} - ${searchParams.get(
+                    "month"
+                  )} - ${searchParams.get("year")}`}
                 </motion.p>
               </DynamicIslandDefaultContent>
             ),
