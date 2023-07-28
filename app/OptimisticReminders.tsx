@@ -207,7 +207,10 @@ export default function OptimisticReminders({
                   //   minute: "2-digit",
                   // })}
                   dueDateTime={
-                    (item as Reminder).dueDateTime?.toISOString() ??
+                    (item as Reminder).dueDateTime?.toLocaleTimeString(
+                      "pt-Br",
+                      { hour: "2-digit", minute: "2-digit" }
+                    ) ??
                     (item as SendingReminder).reminder.dueDateTime.toISOString()
                   }
                   handleRemove={handleRemove}

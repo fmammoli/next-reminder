@@ -29,10 +29,7 @@ function ReminderItemOrigin({
           </p>
           <p className="font-thin">
             Due at:
-            {parseISO(dueDateTime).toLocaleTimeString("pt-Br", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
+            {dueDateTime}
           </p>
         </div>
         {id ? (
