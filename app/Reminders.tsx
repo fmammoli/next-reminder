@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "./api/auth/[...nextauth]/route";
 import { Reminder } from "@/types/Reminder";
 import OptimisticReminders from "./OptimisticReminders";
-import { getRemindersByDate } from "./_actions";
+import { getRemindersByDate, getRemindersByDateNumbers } from "./_actions";
 
 export default async function Reminders({
   year,
@@ -20,8 +20,14 @@ export default async function Reminders({
   if (session) {
     try {
       if (!session.user.isAnonymous) {
-        reminders = await getRemindersByDate(
-          new Date(`${month}/${day}/${year}`),
+        // reminders = await getRemindersByDate(
+        //   new Date(`${month}/${day}/${year}`),
+        //   session
+        // );
+        reminders = await getRemindersByDateNumbers(
+          parseInt(year),
+          parseInt(month),
+          parseInt(day),
           session
         );
       }

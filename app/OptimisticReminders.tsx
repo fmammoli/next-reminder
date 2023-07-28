@@ -106,7 +106,6 @@ export default function OptimisticReminders({
         const response = await send(newReminder, session);
         if (response?.ok) {
           console.log("Send response!");
-          // router.refresh();
         } else {
           console.log("Something did not work");
         }

@@ -5,7 +5,6 @@ import reminderConverter from "@/lib/firebase/reminderFirestoreConverter";
 import { adminAuth } from "@/lib/firebase/serverApp";
 import { OptimisticReminder, Reminder } from "@/types/Reminder";
 import {
-  Timestamp,
   collection,
   deleteDoc,
   doc,
@@ -44,6 +43,59 @@ function toFormmatedString(date: Date) {
   return `${day}/${month}/${year}`;
 }
 
+export async function getRemindersByDateNumbers(
+  year: number,
+  month: number,
+  day: number,
+  session: Session
+) {
+  let firebaseLoggged = false;
+
+  try {
+    if (!auth.currentUser) {
+      const firebaseUser = await getFirebaseIdToken(session);
+      if (firebaseUser) firebaseLoggged = true;
+    } else {
+      firebaseLoggged = true;
+    }
+    if (firebaseLoggged) {
+      const reminderCollectionRef = collection(
+        db,
+        `users/${session.user.userId}/reminders`
+      ).withConverter(reminderConverter);
+      // const zeroedDate = new Date(date);
+      // zeroedDate.setHours(0, 0, 0);
+      // const queryRef = query(
+      //   reminderCollectionRef,
+      //   where("dueDate", "==", zeroedDate),
+      //   orderBy("dueDateTime", "desc")
+      // );
+
+      const queryRef = query(
+        reminderCollectionRef,
+        where("year", "==", year),
+        where("month", "==", month),
+        where("day", "==", day),
+        orderBy("dueDateTime", "desc")
+      );
+
+      const remindersSnapshot = await getDocs(queryRef);
+
+      const remindersList = remindersSnapshot.docs.map((doc) => doc.data());
+
+      // revalidatePath("");
+      return remindersList;
+    } else {
+      throw new Error(
+        `Error verifying firestore session: ${session.user.email}`
+      );
+    }
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+
 export async function getRemindersByDate(date: Date, session: Session) {
   let firebaseLoggged = false;
 
@@ -59,11 +111,31 @@ export async function getRemindersByDate(date: Date, session: Session) {
         db,
         `users/${session.user.userId}/reminders`
       ).withConverter(reminderConverter);
-      const zeroedDate = new Date(date);
-      zeroedDate.setHours(0, 0, 0);
+      // const zeroedDate = new Date(date);
+      // zeroedDate.setHours(0, 0, 0);
+      // const queryRef = query(
+      //   reminderCollectionRef,
+      //   where("dueDate", "==", zeroedDate),
+      //   orderBy("dueDateTime", "desc")
+      // );
+
       const queryRef = query(
         reminderCollectionRef,
-        where("dueDate", "==", zeroedDate),
+        where(
+          "year",
+          "==",
+          date.toLocaleDateString("pt-Br", { year: "numeric" })
+        ),
+        where(
+          "month",
+          "==",
+          date.toLocaleDateString("pt-Br", { month: "2-digit" })
+        ),
+        where(
+          "day",
+          "==",
+          date.toLocaleDateString("pt-Br", { day: "2-digit" })
+        ),
         orderBy("dueDateTime", "desc")
       );
 
@@ -229,7 +301,7 @@ export async function send(data: OptimisticReminder, session: Session) {
       });
 
       // console.log("Send: New reminder send completed.");
-
+      revalidatePath("/reminders");
       return {
         code: "Success",
         message: `New document added with id: ${newReminderRef.id}`,

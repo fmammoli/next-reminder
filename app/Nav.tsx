@@ -34,11 +34,6 @@ export default function Nav() {
 
   const { scrollY } = useScroll();
 
-  console.log(
-    `${searchParams.get("year")}-${searchParams.get(
-      "month"
-    )}-${searchParams.get("day")}`
-  );
   const searchParamsDate = parseISO(
     `${searchParams.get("year")}-${searchParams.get(
       "month"

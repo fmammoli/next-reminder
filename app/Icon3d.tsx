@@ -5,7 +5,6 @@ import { Float, OrbitControls, Preload } from "@react-three/drei";
 import CalendarIcon3d from "./CalendarIcon3d";
 
 export function Icon3d() {
-  console.log("Icon3D");
   return (
     <Suspense fallback={null}>
       <Canvas flat linear>
