@@ -30,7 +30,7 @@ export default async function Home() {
         <h2>My reminders</h2>
         <Reminders></Reminders>
       </div> */}
-      <div>
+      <div className="flex justify-center mt-40">
         <Link href={`/reminders?day=${day}&month=${month}&year=${year}`}>
           <Button>Go to Calendar</Button>
         </Link>

@@ -60,7 +60,7 @@ const variants = {
     },
   },
   large: {
-    width: "30rem",
+    width: "90%",
     gridTemplateRows: "1fr",
     transition: {
       type: "spring",
@@ -107,7 +107,7 @@ export default function DynamicIsland({
   return (
     <motion.div
       layout
-      className={`grid text-center text-white transition duration-300 ease-in-out bg-black hover:shadow-lg hover:cursor-pointer ${className}`}
+      className={`grid text-center max-w-lg text-white transition duration-300 ease-in-out bg-black hover:shadow-lg hover:cursor-pointer ${className}`}
       variants={variants}
       initial={initialState}
       animate={animation}
