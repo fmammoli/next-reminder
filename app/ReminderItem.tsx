@@ -24,7 +24,7 @@ function ReminderItemOrigin({
       <CardContent className="flex justify-between item-center pt-6">
         <div>
           <p>{text}</p>
-          <p className="font-thin">
+          {/* <p className="font-thin">
             Created At:{sending ? "Sending ..." : createdAt}
           </p>
           <p className="font-thin">
@@ -33,7 +33,7 @@ function ReminderItemOrigin({
               hour: "2-digit",
               minute: "2-digit",
             })}
-          </p>
+          </p> */}
         </div>
         {id ? (
           <DeletReminderButton
