@@ -17,7 +17,7 @@ export default function UserAccount({
   boringAvatar,
   isLogged = false,
 }: {
-  setSelectedId: React.Dispatch<
+  setSelectedId?: React.Dispatch<
     React.SetStateAction<"initial" | "default" | "large" | "long" | "loading">
   >;
   name?: string | null;
@@ -28,9 +28,12 @@ export default function UserAccount({
   userId?: string;
   boringAvatar?: ReactNode;
   isLogged?: boolean;
+  onClose: () => void;
 }) {
   function handleClick() {
-    setSelectedId("default");
+    if (setSelectedId) {
+      setSelectedId("default");
+    }
   }
 
   return (
@@ -39,8 +42,9 @@ export default function UserAccount({
         <div className="flex gap-2 items-center">
           <div className="relative">
             <Avatar className="w-[60px] h-[60px] rounded-[22px] aspect-square">
-              {image && <AvatarImage src={image} />}
-
+              {image && (
+                <AvatarImage src={image} referrerPolicy="no-referrer" />
+              )}
               <AvatarFallback className="text-sm bg-black rounded-[22px] aspect-square">
                 {boringAvatar ? boringAvatar : "AN"}
               </AvatarFallback>

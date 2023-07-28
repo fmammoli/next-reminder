@@ -11,8 +11,7 @@ const firestore = initFirestore({
       : undefined,
   }),
 });
-
-const adminDb = admin.firestore();
 const adminAuth = admin.auth();
+const adminDb = admin.firestore();
 
 export { adminDb, adminAuth, firestore };

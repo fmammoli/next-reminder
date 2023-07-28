@@ -66,6 +66,7 @@ export default function useFirebaseLogin({
 
         return { firebaseResponse, customToken: token };
       } catch (error) {
+        console.log("Error on use firebaseLogin");
         throw error;
       }
     }
@@ -131,13 +132,14 @@ export default function useFirebaseLogin({
           localReminders = JSON.parse(data);
         }
         signInWithFirebase(session.user.email).then((newSession) => {
-          if (newSession) {
+          if (newSession && newSession.user.isNewUser) {
             if (localReminders && localReminders.length > 0) {
               sendArray(
                 localReminders.map((item) => {
                   return {
                     ...item,
                     userId: session.user.userId,
+                    dueDateTime: new Date(item.dueDateTime),
                     createdAt: new Date(item.createdAt),
                   };
                 }),

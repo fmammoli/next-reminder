@@ -77,10 +77,3 @@
     -webkit-tap-highlight-color: transparent;
   }
 }
-.rdp-head > tr {
-  justify-content: space-between;
-}
-
-.rdp-tbody > tr {
-  justify-content: space-between;
-}

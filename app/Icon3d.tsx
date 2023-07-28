@@ -1,35 +1,17 @@
 "use client";
-import { Suspense, useRef } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Suspense, memo } from "react";
+import { Canvas } from "@react-three/fiber";
 import { Float, OrbitControls, Preload } from "@react-three/drei";
-import Calendar from "./Calendar";
-import { Mesh } from "three";
+import CalendarIcon3d from "./CalendarIcon3d";
 
-function Box() {
-  const boxRef = useRef<Mesh>(null);
-
-  useFrame(() => {
-    if (boxRef.current) {
-      boxRef.current.rotation.x += 0.005;
-      boxRef.current.rotation.y += 0.01;
-    }
-  });
-
+export function Icon3d() {
+  console.log("Icon3D");
   return (
-    <mesh ref={boxRef}>
-      <boxGeometry args={[1, 1, 1]}></boxGeometry>
-      <meshStandardMaterial color="orange"></meshStandardMaterial>
-    </mesh>
-  );
-}
-
-export default function Icon3d() {
-  return (
-    <Suspense fallback={"null"}>
+    <Suspense fallback={null}>
       <Canvas flat linear>
         <ambientLight></ambientLight>
         <Float speed={1.4} rotationIntensity={1.5} floatIntensity={2.3}>
-          <Calendar></Calendar>
+          <CalendarIcon3d></CalendarIcon3d>
         </Float>
         <Preload all></Preload>
         <OrbitControls makeDefault enableZoom={false} enablePan={false} />
@@ -37,3 +19,6 @@ export default function Icon3d() {
     </Suspense>
   );
 }
+
+const MemoIcon3d = memo(Icon3d);
+export default MemoIcon3d;

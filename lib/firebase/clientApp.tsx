@@ -1,13 +1,7 @@
 // Import the functions you need from the SDKs you need
-import { getApps, initializeApp } from "firebase/app";
-import {
-  browserLocalPersistence,
-  browserSessionPersistence,
-  getAuth,
-  indexedDBLocalPersistence,
-  initializeAuth,
-} from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { FirebaseApp, getApps, initializeApp } from "firebase/app";
+import { Auth, getAuth, initializeAuth } from "firebase/auth";
+import { Firestore, getFirestore } from "firebase/firestore";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -22,23 +16,27 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
+//@ts-ignore
+let app: FirebaseApp = null;
+//@ts-ignore
+let auth: Auth = null;
+//@ts-ignore
+let db: Firestore = null;
 
-const app =
-  getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+if (getApps().length === 0) {
+  app = initializeApp(firebaseConfig);
+  auth = initializeAuth(app);
+  db = getFirestore(app);
+} else {
+  app = getApps()[0];
+  auth = getAuth(app);
+  db = getFirestore(app);
+}
 
 // Initialize Firebase
 // const app = initializeApp(firebaseConfig);
 // if (isSupported() === true) {
 //   const analytics = getAnalytics(app);
 // }
-
-const auth = initializeAuth(app, {
-  persistence: [
-    indexedDBLocalPersistence,
-    browserLocalPersistence,
-    browserSessionPersistence,
-  ],
-});
-const db = getFirestore(app);
 
 export { app, auth, db };

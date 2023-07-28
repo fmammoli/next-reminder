@@ -1,15 +1,17 @@
 "use client";
 
 import { OptimisticReminder, Reminder } from "@/types/Reminder";
-import { useRef } from "react";
+
 import { experimental_useOptimistic as useOptimistic } from "react";
 import TodoForm from "./TodoForm";
 import ReminderItem from "./ReminderItem";
 import useLocalStorageState from "use-local-storage-state";
 import { Session } from "next-auth";
 import { deleteReminder, send } from "./_actions";
-import { useRouter } from "next/navigation";
+
 import { useSession } from "next-auth/react";
+import ActionButton from "./ActionButton";
+import { isSameDay, parseISO } from "date-fns";
 
 type SendingReminder = {
   reminder: OptimisticReminder;
@@ -36,32 +38,32 @@ type deleteAction = {
 export default function OptimisticReminders({
   reminders,
   serverSession,
+  day,
+  month,
+  year,
 }: {
   reminders: Reminder[];
   serverSession?: Session | null;
+  day?: string;
+  month?: string;
+  year?: string;
 }) {
   const { data: session, status } = useSession();
 
-  console.log("Optimistic reminders: session comming from remindersServer");
-  // console.log(session);
-  // const [localReminders, setLocalReminders] = useLocalStorageState<
-  //   Reminder[] | []
-  // >(
-  //   `my-reminders-anon-${
-  //     session?.user.isAnonymous ? session.user.userId : null
-  //   }`,
-  //   {
-  //     defaultValue: [],
-  //   }
-  // );
+  const startingDate =
+    year && month && (day ?? "01")
+      ? new Date(`${month}/${day}/${year}`)
+      : new Date();
+
+  // const [date, setDate] = useState<Date>(startingDate);
+
+  // console.log("Optimistic reminders: session comming from remindersServer");
 
   const [localReminders, setLocalReminders] = useLocalStorageState<
     Reminder[] | []
   >(`my-reminders-anon-test`, {
     defaultValue: [],
   });
-
-  const router = useRouter();
 
   const [optimisticReminders, dispatchOptimisticReminders] = useOptimistic<
     OptimisticReminders,
@@ -84,7 +86,6 @@ export default function OptimisticReminders({
         return state;
     }
   });
-  const formRef = useRef();
 
   async function handleAdd(newReminder: OptimisticReminder) {
     if (session) {
@@ -105,7 +106,7 @@ export default function OptimisticReminders({
         const response = await send(newReminder, session);
         if (response?.ok) {
           console.log("Send response!");
-          router.refresh();
+          // router.refresh();
         } else {
           console.log("Something did not work");
         }
@@ -130,54 +131,99 @@ export default function OptimisticReminders({
         const response = await deleteReminder(id, session);
         if (response?.ok) {
           console.log("Delete response!");
-          router.refresh();
+          // router.refresh();
         } else {
           console.log("Something did not work");
         }
       }
     }
   }
+
+  let localDayReminders: Reminder[] = [];
+
+  if (session?.user.isAnonymous) {
+    //@ts-ignore
+    localDayReminders = optimisticReminders.filter(
+      (reminder, index: number) => {
+        return isSameDay(
+          new Date(startingDate),
+          new Date((reminder as Reminder).dueDateTime)
+        );
+      }
+    );
+  }
+
   return (
     <div>
+      {/* <DatePicker
+        reminders={reminders}
+        date={date}
+        onDateChange={setDate}
+      ></DatePicker> */}
       <h1>Optimistic reminders</h1>
       <div>
-        <TodoForm session={session} handleAdd={handleAdd}></TodoForm>
+        <TodoForm
+          session={session}
+          handleAdd={handleAdd}
+          dueDate={startingDate}
+        ></TodoForm>
       </div>
 
       <div>
         <ul>
-          {optimisticReminders.map(
-            (item: Reminder | SendingReminder, index) => {
-              return (
-                <div key={index}>
-                  <ReminderItem
-                    text={
-                      (item as SendingReminder).sending
-                        ? (item as SendingReminder).reminder.text
-                        : (item as Reminder).text
-                    }
-                    createdAt={
-                      (item as SendingReminder).sending
-                        ? ""
-                        : (item as Reminder).createdAt.toLocaleString("pt-Br", {
-                            dateStyle: "medium",
-                            timeStyle: "medium",
-                          })
-                    }
-                    sending={(item as SendingReminder).sending}
-                    id={
-                      (item as SendingReminder).sending
-                        ? null
-                        : (item as Reminder).id
-                    }
-                    handleRemove={handleRemove}
-                  ></ReminderItem>
-                </div>
-              );
-            }
-          )}
+          {(session?.user.isAnonymous
+            ? localDayReminders
+            : optimisticReminders
+          ).map((item: Reminder | SendingReminder, index) => {
+            return (
+              <div key={index}>
+                <ReminderItem
+                  text={
+                    (item as SendingReminder).sending
+                      ? (item as SendingReminder).reminder.text
+                      : (item as Reminder).text
+                  }
+                  createdAt={new Date(
+                    (item as Reminder).createdAt ??
+                      (item as SendingReminder).reminder.createdAt
+                  ).toLocaleString("pt-Br", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                  sending={(item as SendingReminder).sending}
+                  id={
+                    (item as SendingReminder).sending
+                      ? null
+                      : (item as Reminder).id
+                  }
+                  // dueDateTime={
+                  //   (item as SendingReminder).sending
+                  //     ? (
+                  //         item as SendingReminder
+                  //       ).reminder.dueDateTime.toLocaleString("pt-Br", {
+                  //         hour: "2-digit",
+                  //         minute: "2-digit",
+                  //       })
+                  //     : (item as Reminder).dueDateTime.toLocaleString("pt-Br", {
+                  //         hour: "2-digit",
+                  //         minute: "2-digit",
+                  //       })
+                  // }
+                  dueDateTime={new Date(
+                    (item as Reminder).dueDateTime ??
+                      (item as SendingReminder).reminder.dueDateTime
+                  ).toLocaleString("pt-Br", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                  handleRemove={handleRemove}
+                ></ReminderItem>
+              </div>
+            );
+          })}
         </ul>
       </div>
+      <ActionButton></ActionButton>
     </div>
   );
 }

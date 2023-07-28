@@ -2,13 +2,18 @@
 import { auth, db } from "@/lib/firebase/clientApp";
 import getFirebaseIdToken from "@/lib/firebase/getFirebaseIdToken";
 import reminderConverter from "@/lib/firebase/reminderFirestoreConverter";
-import { adminAuth, adminDb } from "@/lib/firebase/serverApp";
+import { adminAuth } from "@/lib/firebase/serverApp";
 import { OptimisticReminder, Reminder } from "@/types/Reminder";
 import {
+  Timestamp,
   collection,
   deleteDoc,
   doc,
+  getDocs,
+  orderBy,
+  query,
   setDoc,
+  where,
   writeBatch,
 } from "firebase/firestore";
 import { Session } from "next-auth/core/types";
@@ -23,6 +28,101 @@ export async function deleteUsers() {
     return res;
   } catch (error) {
     throw error;
+  }
+}
+
+function toFormmatedString(date: Date) {
+  const day = date.toLocaleDateString("pt-Br", {
+    day: "2-digit",
+  });
+  const month = date.toLocaleDateString("pt-Br", {
+    month: "2-digit",
+  });
+  const year = date.toLocaleDateString("pt-Br", {
+    year: "numeric",
+  });
+  return `${day}/${month}/${year}`;
+}
+
+export async function getRemindersByDate(date: Date, session: Session) {
+  let firebaseLoggged = false;
+
+  try {
+    if (!auth.currentUser) {
+      const firebaseUser = await getFirebaseIdToken(session);
+      if (firebaseUser) firebaseLoggged = true;
+    } else {
+      firebaseLoggged = true;
+    }
+    if (firebaseLoggged) {
+      const reminderCollectionRef = collection(
+        db,
+        `users/${session.user.userId}/reminders`
+      ).withConverter(reminderConverter);
+      const zeroedDate = new Date(date);
+      zeroedDate.setHours(0, 0, 0);
+      const queryRef = query(
+        reminderCollectionRef,
+        where("dueDate", "==", zeroedDate),
+        orderBy("dueDateTime", "desc")
+      );
+
+      const remindersSnapshot = await getDocs(queryRef);
+
+      const remindersList = remindersSnapshot.docs.map((doc) => doc.data());
+
+      // revalidatePath("");
+      return remindersList;
+    } else {
+      throw new Error(
+        `Error verifying firestore session: ${session.user.email}`
+      );
+    }
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+
+export async function getRemindersByMonth(
+  month: number,
+  year: number,
+  session: Session
+) {
+  let firebaseLoggged = false;
+
+  if (!auth.currentUser) {
+    const firebaseUser = await getFirebaseIdToken(session);
+    if (firebaseUser) firebaseLoggged = true;
+  } else {
+    firebaseLoggged = true;
+  }
+  if (firebaseLoggged) {
+    try {
+      const reminderCollectionRef = collection(
+        db,
+        `users/${session.user.userId}/reminders`
+      ).withConverter(reminderConverter);
+
+      const queryRef = query(
+        reminderCollectionRef,
+        where("year", "==", year),
+        where("month", "==", month),
+        orderBy("dueDateTime", "desc")
+      );
+
+      const remindersSnapshot = await getDocs(queryRef);
+
+      const remindersList = remindersSnapshot.docs.map((doc) => doc.data());
+
+      // revalidatePath("");
+      return remindersList;
+    } catch (error) {
+      console.log("Error fetching");
+      throw error;
+    }
+  } else {
+    throw new Error(`Error verifying firestore session: ${session.user.email}`);
   }
 }
 
@@ -95,7 +195,7 @@ export async function send(data: OptimisticReminder, session: Session) {
     // );
     firebaseLoggged = true;
   }
-  console.log(session);
+
   if (!firebaseLoggged)
     throw new Error(`Error verifying firestore session: ${session.user.email}`);
   if (!session || !session.user.userId)

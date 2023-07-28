@@ -1,10 +1,10 @@
+import { Reminder } from "@/types/Reminder";
+import DatePicker from "./DatePicker";
+import { getRemindersByMonth } from "./_actions";
 import { getServerSession } from "next-auth";
 import { authOptions } from "./api/auth/[...nextauth]/route";
-import { Reminder } from "@/types/Reminder";
-import OptimisticReminders from "./OptimisticReminders";
-import { getRemindersByDate } from "./_actions";
 
-export default async function Reminders({
+export default async function RemindersCalendar({
   year,
   month,
   day,
@@ -17,11 +17,13 @@ export default async function Reminders({
   const logged = !!session?.user?.email || false;
 
   let reminders: Reminder[] | [] = [];
+
   if (session) {
     try {
       if (!session.user.isAnonymous) {
-        reminders = await getRemindersByDate(
-          new Date(`${month}/${day}/${year}`),
+        reminders = await getRemindersByMonth(
+          parseInt(month),
+          parseInt(year),
           session
         );
       }
@@ -32,14 +34,9 @@ export default async function Reminders({
   }
 
   return (
-    <>
-      <OptimisticReminders
-        reminders={reminders}
-        serverSession={session}
-        year={year}
-        month={month}
-        day={day}
-      ></OptimisticReminders>
-    </>
+    <DatePicker
+      reminders={reminders}
+      date={new Date(`${month}/${day}/${year}`)}
+    ></DatePicker>
   );
 }

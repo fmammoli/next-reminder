@@ -7,12 +7,14 @@ function ReminderItemOrigin({
   id,
   text,
   createdAt = "",
+  dueDateTime = "",
   sending,
   handleRemove,
 }: {
   id: string | null;
   text: string;
   createdAt?: string;
+  dueDateTime: string;
   sending?: boolean;
   handleRemove: (id: string) => void;
 }) {
@@ -21,7 +23,10 @@ function ReminderItemOrigin({
       <CardContent className="flex justify-between item-center pt-6">
         <div>
           <p>{text}</p>
-          <p className="font-thin">{sending ? "Sending ..." : createdAt}</p>
+          <p className="font-thin">
+            Created At:{sending ? "Sending ..." : createdAt}
+          </p>
+          <p className="font-thin">Due Date: {dueDateTime}</p>
         </div>
         {id ? (
           <DeletReminderButton
