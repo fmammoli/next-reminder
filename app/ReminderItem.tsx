@@ -25,11 +25,11 @@ function ReminderItemOrigin({
         <div>
           <p>{text}</p>
           <p className="font-thin">
-            Created At:{sending ? "Sending ..." : createdAt}
+            {/* Created At:{sending ? "Sending ..." : createdAt} */}
           </p>
           <p className="font-thin">
             Due at:
-            {dueDateTime}
+            {dueDateTime.split(" ")[4].slice(0, -3)}
           </p>
         </div>
         {id ? (

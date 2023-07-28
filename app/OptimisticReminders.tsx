@@ -190,8 +190,8 @@ export default function OptimisticReminders({
                   //   minute: "2-digit",
                   // })}
                   createdAt={
-                    (item as Reminder).createdAt?.toISOString() ??
-                    (item as SendingReminder).reminder.createdAt.toISOString()
+                    (item as Reminder).createdAt?.toString() ??
+                    (item as SendingReminder).reminder.createdAt.toString()
                   }
                   sending={(item as SendingReminder).sending}
                   id={
@@ -207,11 +207,8 @@ export default function OptimisticReminders({
                   //   minute: "2-digit",
                   // })}
                   dueDateTime={
-                    (item as Reminder).dueDateTime?.toLocaleTimeString(
-                      "pt-Br",
-                      { hour: "2-digit", minute: "2-digit" }
-                    ) ??
-                    (item as SendingReminder).reminder.dueDateTime.toISOString()
+                    (item as Reminder).dueDateTime?.toString() ??
+                    (item as SendingReminder).reminder.dueDateTime.toString()
                   }
                   handleRemove={handleRemove}
                 ></ReminderItem>
