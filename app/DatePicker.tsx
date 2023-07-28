@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { DayContent, DayContentProps } from "react-day-picker";
 
-import { isSameDay, isSameMonth } from "date-fns";
+import { isSameDay, isSameMonth, parseISO } from "date-fns";
 import CustomDay from "./CustomDay";
 import useLocalStorageState from "use-local-storage-state";
 import { useSession } from "next-auth/react";
@@ -79,8 +79,10 @@ export default function DatePicker({
             session?.user.isAnonymous ? localReminders : reminders
           ).filter((reminder: Reminder, index: number) => {
             return isSameDay(
-              new Date(props.date),
-              new Date(reminder.dueDateTime)
+              props.date,
+              typeof reminder.dueDateTime === "string"
+                ? parseISO(reminder.dueDateTime)
+                : reminder.dueDateTime
             );
           });
           return CustomDay({

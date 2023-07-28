@@ -62,6 +62,8 @@ export default function TodoForm({
     day: "2-digit",
   });
 
+  const now = new Date();
+
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="flex gap-2">
       <div className="flex flex-col gap-2">
@@ -81,11 +83,10 @@ export default function TodoForm({
           name="time"
           type="time"
           placeholder="hh:mm"
-          defaultValue={`${new Date().toLocaleTimeString("pt-Br", {
-            hour: "numeric",
-          })}:${new Date().toLocaleTimeString("pt-Br", {
-            minute: "numeric",
-          })}`}
+          defaultValue={`${now.getHours().toString().padStart(2, "0")}:${now
+            .getMinutes()
+            .toString()
+            .padStart(2, "0")}`}
         ></Input>
       </div>
 

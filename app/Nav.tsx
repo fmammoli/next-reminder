@@ -10,6 +10,7 @@ import { useSession } from "next-auth/react";
 import BoringAvatar from "boring-avatars";
 import UserAccount from "./UserAccount";
 import { useSearchParams } from "next/navigation";
+import { parseISO } from "date-fns";
 
 type IslandStateContent = {
   dynamicIslandState: DynamicIslandStates;
@@ -33,10 +34,15 @@ export default function Nav() {
 
   const { scrollY } = useScroll();
 
-  const searchParamsDate = new Date(
-    `${searchParams.get("month")}/${searchParams.get("day")}/${searchParams.get(
-      "year"
-    )}`
+  console.log(
+    `${searchParams.get("year")}-${searchParams.get(
+      "month"
+    )}-${searchParams.get("day")}`
+  );
+  const searchParamsDate = parseISO(
+    `${searchParams.get("year")}-${searchParams.get(
+      "month"
+    )}-${searchParams.get("day")}`
   );
 
   const longContent = (
@@ -120,9 +126,12 @@ export default function Nav() {
                     month: "long",
                     year: "numeric",
                   })} */}
-                  {`${searchParams.get("day")} - ${searchParams.get(
-                    "month"
-                  )} - ${searchParams.get("year")}`}
+                  {searchParamsDate.toLocaleDateString("pt-Br", {
+                    weekday: "long",
+                    day: "2-digit",
+                    month: "long",
+                    year: "numeric",
+                  })}
                 </motion.p>
               </DynamicIslandDefaultContent>
             ),
