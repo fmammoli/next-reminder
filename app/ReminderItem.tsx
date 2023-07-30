@@ -1,8 +1,8 @@
-import { Timestamp } from "firebase/firestore";
 import DeletReminderButton from "./DeleteReminderButton";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { memo, useMemo } from "react";
-import { parseISO } from "date-fns";
+import { Card, CardContent } from "@/components/ui/card";
+import { memo } from "react";
+import { motion } from "framer-motion";
+import { Loader2 } from "lucide-react";
 
 function ReminderItemOrigin({
   id,
@@ -23,10 +23,25 @@ function ReminderItemOrigin({
     <Card className="my-4">
       <CardContent className="flex justify-between item-center pt-6">
         <div>
-          <p>{text}</p>
-          <p className="font-thin">
-            {/* Created At:{sending ? "Sending ..." : createdAt} */}
-          </p>
+          <div className="flex items-center gap-2">
+            <p>{text}</p>
+            {sending && (
+              <motion.div
+                animate={{
+                  rotate: "360deg",
+                }}
+                transition={{ repeat: 10, duration: 2, ease: "easeInOut" }}
+              >
+                <Loader2
+                  strokeWidth={2}
+                  width={16}
+                  height={16}
+                  className="text-cyan-500"
+                ></Loader2>
+              </motion.div>
+            )}
+          </div>
+          <p className="font-thin">{sending ? "Sending ..." : createdAt}</p>
           <p className="font-thin">
             Due at:
             {dueDateTime.split(" ")[4].slice(0, -3)}

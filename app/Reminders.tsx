@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "./api/auth/[...nextauth]/route";
 import { Reminder } from "@/types/Reminder";
 import OptimisticReminders from "./OptimisticReminders";
-import { getRemindersByDate, getRemindersByDateNumbers } from "./_actions";
+import { getRemindersByDateNumbersAdmin } from "./_actions";
 
 export default async function Reminders({
   year,
@@ -17,6 +17,7 @@ export default async function Reminders({
   const logged = !!session?.user?.email || false;
 
   let reminders: Reminder[] | [] = [];
+  let monthReminders: Reminder[] | [] = [];
   if (session) {
     try {
       if (!session.user.isAnonymous) {
@@ -24,12 +25,24 @@ export default async function Reminders({
         //   new Date(`${month}/${day}/${year}`),
         //   session
         // );
-        reminders = await getRemindersByDateNumbers(
+        // const preminders = getRemindersByDateNumbersAdmin(
+        //   parseInt(year),
+        //   parseInt(month),
+        //   parseInt(day),
+        //   session.user.userId
+        // );
+
+        const pmonthReminders = await getRemindersByDateNumbersAdmin(
           parseInt(year),
           parseInt(month),
-          parseInt(day),
-          session
+          0,
+          session.user.userId
         );
+        reminders = pmonthReminders;
+        // [reminders, monthReminders] = await Promise.all([
+        //   preminders,
+        //   pmonthReminders,
+        // ]);
       }
     } catch (error) {
       console.log("Problem fetching reminders");

@@ -6,13 +6,13 @@ import { experimental_useOptimistic as useOptimistic } from "react";
 import TodoForm from "./TodoForm";
 import ReminderItem from "./ReminderItem";
 import useLocalStorageState from "use-local-storage-state";
-import { Session } from "next-auth";
+
 import { deleteReminder, send } from "./_actions";
 
-import { useSession } from "next-auth/react";
 import ActionButton from "./ActionButton";
-import { isSameDay, parseISO } from "date-fns";
-
+import { isSameDay } from "date-fns";
+import { Session } from "next-auth/core/types";
+import DatePicker from "./DatePicker";
 type SendingReminder = {
   reminder: OptimisticReminder;
   sending: boolean;
@@ -35,29 +35,33 @@ type deleteAction = {
   id: string;
 };
 
+type filterAction = {
+  type: "filter";
+  date: Date;
+};
+
+let count = 0;
 export default function OptimisticReminders({
   reminders,
+  monthReminders,
   serverSession,
   day,
   month,
   year,
 }: {
   reminders: Reminder[];
+  monthReminders?: Reminder[];
   serverSession?: Session | null;
   day?: string;
   month?: string;
   year?: string;
 }) {
-  const { data: session, status } = useSession();
-
   const startingDate =
     year && month && (day ?? "01")
       ? new Date(`${month}/${day}/${year}`)
       : new Date();
 
-  // const [date, setDate] = useState<Date>(startingDate);
-
-  // console.log("Optimistic reminders: session comming from remindersServer");
+  console.log("Rendering optimistic: " + ++count);
 
   const [localReminders, setLocalReminders] = useLocalStorageState<
     Reminder[] | []
@@ -65,36 +69,57 @@ export default function OptimisticReminders({
     defaultValue: [],
   });
 
-  const [optimisticReminders, dispatchOptimisticReminders] = useOptimistic<
-    OptimisticReminders,
-    addAction | addLocalAction | deleteAction
-  >(session?.user.isAnonymous ? localReminders : reminders, (state, action) => {
-    switch (action.type) {
-      case "add":
-        return [{ reminder: action.newReminder, sending: true }, ...state];
-
-      case "delete":
-        return state.filter((item: Reminder | SendingReminder) => {
-          if ((item as Reminder).id) {
-            return (item as Reminder).id !== action.id;
-          } else {
-            return true;
-          }
-        });
-
-      default:
-        return state;
-    }
+  const dayReminders = reminders.filter((item) => {
+    const itemDay = item.dueDateTime.toLocaleDateString("pt-Br", {
+      day: "2-digit",
+    });
+    const itemMonth = item.dueDateTime.toLocaleDateString("pt-Br", {
+      month: "2-digit",
+    });
+    const itemYear = item.dueDateTime.toLocaleDateString("pt-Br", {
+      year: "numeric",
+    });
+    return itemYear == year && itemMonth === month && itemDay === day;
   });
 
+  const [optimisticReminders, dispatchOptimisticReminders] = useOptimistic<
+    OptimisticReminders,
+    addAction | addLocalAction | deleteAction | filterAction
+  >(
+    serverSession?.user.isAnonymous ? localReminders : dayReminders,
+    (state, action) => {
+      switch (action.type) {
+        case "add":
+          return [{ reminder: action.newReminder, sending: true }, ...state];
+
+        case "delete":
+          return state.filter((item: Reminder | SendingReminder) => {
+            if ((item as Reminder).id) {
+              return (item as Reminder).id !== action.id;
+            } else {
+              return true;
+            }
+          });
+        case "filter":
+          const res = reminders.filter((reminder, index: number) => {
+            return isSameDay(action.date, (reminder as Reminder).dueDateTime);
+          });
+
+          return res;
+        default:
+          return state;
+      }
+    }
+  );
+
   async function handleAdd(newReminder: OptimisticReminder) {
-    if (session) {
-      if (session.user.isAnonymous) {
+    if (serverSession) {
+      if (serverSession.user.isAnonymous) {
         return setLocalReminders((state) => {
           return [
             {
               ...newReminder,
-              userId: session.user.userId,
+              userId: serverSession.user.userId,
               id: (state.length + 1).toString(),
             },
             ...state,
@@ -103,7 +128,7 @@ export default function OptimisticReminders({
       } else {
         dispatchOptimisticReminders({ type: "add", newReminder: newReminder });
 
-        const response = await send(newReminder, session);
+        const response = await send(newReminder, serverSession);
         if (response?.ok) {
           console.log("Send response!");
         } else {
@@ -114,8 +139,8 @@ export default function OptimisticReminders({
   }
 
   async function handleRemove(id: string) {
-    if (session) {
-      if (session.user.isAnonymous) {
+    if (serverSession) {
+      if (serverSession.user.isAnonymous) {
         setLocalReminders((state) => {
           return state.filter((item: Reminder | SendingReminder) => {
             if ((item as Reminder).id) {
@@ -127,12 +152,20 @@ export default function OptimisticReminders({
         });
       } else {
         dispatchOptimisticReminders({ type: "delete", id: id });
-        const response = await deleteReminder(id, session);
-        if (response?.ok) {
-          console.log("Delete response!");
-          // router.refresh();
-        } else {
-          console.log("Something did not work");
+        const reminder = optimisticReminders.find(
+          (item) => (item as Reminder).id === id
+        );
+        if (reminder) {
+          const response = await deleteReminder(
+            reminder as Reminder,
+            serverSession
+          );
+          if (response?.ok) {
+            console.log("Delete response!");
+            // router.refresh();
+          } else {
+            console.log("Something did not work");
+          }
         }
       }
     }
@@ -140,7 +173,7 @@ export default function OptimisticReminders({
 
   let localDayReminders: Reminder[] = [];
 
-  if (session?.user.isAnonymous) {
+  if (serverSession?.user.isAnonymous) {
     //@ts-ignore
     localDayReminders = optimisticReminders.filter(
       (reminder, index: number) => {
@@ -152,17 +185,22 @@ export default function OptimisticReminders({
     );
   }
 
+  function optimisticHandleDateChange(date: Date) {
+    dispatchOptimisticReminders({ type: "filter", date: date });
+  }
+
   return (
     <div>
-      {/* <DatePicker
+      <DatePicker
         reminders={reminders}
-        date={date}
-        onDateChange={setDate}
-      ></DatePicker> */}
+        date={new Date(`${month}/${day}/${year}`)}
+        isAnonymous={serverSession?.user.isAnonymous ? true : false}
+        onDateChange={optimisticHandleDateChange}
+      ></DatePicker>
       <h1>Optimistic reminders</h1>
       <div>
         <TodoForm
-          session={session}
+          session={serverSession}
           handleAdd={handleAdd}
           dueDate={startingDate}
         ></TodoForm>
@@ -170,25 +208,24 @@ export default function OptimisticReminders({
 
       <div>
         <ul>
-          {(session?.user.isAnonymous
+          {(serverSession?.user.isAnonymous
             ? localDayReminders
             : optimisticReminders
           ).map((item: Reminder | SendingReminder, index) => {
             return (
-              <div key={index}>
+              <div
+                key={
+                  (item as SendingReminder).sending
+                    ? (item as SendingReminder).reminder.createdAt.toUTCString()
+                    : (item as Reminder).id
+                }
+              >
                 <ReminderItem
                   text={
                     (item as SendingReminder).sending
                       ? (item as SendingReminder).reminder.text
                       : (item as Reminder).text
                   }
-                  // createdAt={new Date(
-                  //   (item as Reminder).createdAt ??
-                  //     (item as SendingReminder).reminder.createdAt
-                  // ).toLocaleString("pt-Br", {
-                  //   hour: "2-digit",
-                  //   minute: "2-digit",
-                  // })}
                   createdAt={
                     (item as Reminder).createdAt?.toString() ??
                     (item as SendingReminder).reminder.createdAt.toString()
@@ -199,13 +236,6 @@ export default function OptimisticReminders({
                       ? null
                       : (item as Reminder).id
                   }
-                  // dueDateTime={new Date(
-                  //   (item as Reminder).dueDateTime ??
-                  //     (item as SendingReminder).reminder.dueDateTime
-                  // ).toLocaleString("pt-Br", {
-                  //   hour: "2-digit",
-                  //   minute: "2-digit",
-                  // })}
                   dueDateTime={
                     (item as Reminder).dueDateTime?.toString() ??
                     (item as SendingReminder).reminder.dueDateTime.toString()

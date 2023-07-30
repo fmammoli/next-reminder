@@ -21,7 +21,7 @@ export default function RootLayout({
       {/* <body className={inter.className}> */}
       <body>
         <NextAuthProvider>
-          <header className="sticky top-[1rem] mt-6 mb-4 z-10">
+          <header className="sticky top-[1rem] mt-6 mb-4 z-10 min-h-[2.5rem]">
             <FirebaseSessionHandler>
               <Nav></Nav>
             </FirebaseSessionHandler>

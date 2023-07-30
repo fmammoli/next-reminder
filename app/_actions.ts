@@ -2,8 +2,9 @@
 import { auth, db } from "@/lib/firebase/clientApp";
 import getFirebaseIdToken from "@/lib/firebase/getFirebaseIdToken";
 import reminderConverter from "@/lib/firebase/reminderFirestoreConverter";
-import { adminAuth } from "@/lib/firebase/serverApp";
+import { adminAuth, adminDb } from "@/lib/firebase/serverApp";
 import { OptimisticReminder, Reminder } from "@/types/Reminder";
+import { DocumentData } from "firebase-admin/firestore";
 import {
   collection,
   deleteDoc,
@@ -17,6 +18,8 @@ import {
 } from "firebase/firestore";
 import { Session } from "next-auth/core/types";
 import { revalidatePath } from "next/cache";
+
+import { QueryDocumentSnapshot, Timestamp } from "firebase-admin/firestore";
 
 export async function deleteUsers() {
   try {
@@ -41,6 +44,92 @@ function toFormmatedString(date: Date) {
     year: "numeric",
   });
   return `${day}/${month}/${year}`;
+}
+
+const reminderConverterAdmin = {
+  toFirestore(reminder: Reminder): DocumentData {
+    function setHours0(date: Date) {
+      const newDate = new Date(date);
+      newDate.setHours(0, 0, 0);
+      return newDate;
+    }
+    return {
+      id: reminder.id,
+      text: reminder.text,
+      userId: reminder.userId,
+      createdAt: Timestamp.fromDate(reminder.createdAt),
+      dueDateTime: Timestamp.fromDate(reminder.dueDateTime),
+      dueDate: setHours0(reminder.dueDateTime),
+      year: parseInt(
+        reminder.dueDateTime.toLocaleDateString("pt-Br", { year: "numeric" })
+      ),
+      month: parseInt(
+        reminder.dueDateTime.toLocaleDateString("pt-Br", {
+          month: "2-digit",
+        })
+      ),
+      day: parseInt(
+        reminder.dueDateTime.toLocaleDateString("pt-Br", {
+          day: "2-digit",
+        })
+      ),
+    };
+  },
+
+  fromFirestore(snapshot: QueryDocumentSnapshot): Reminder {
+    const data = snapshot.data()!;
+    return {
+      id: data.id,
+      text: data.text,
+      userId: data.userId,
+      createdAt: data.createdAt.toDate(),
+      dueDateTime: data.dueDateTime.toDate(),
+    };
+  },
+};
+
+export async function getRemindersByDateNumbersAdmin(
+  year: number,
+  month: number,
+  day: number,
+  userId: string
+) {
+  try {
+    let adminReminders;
+    if (day !== 0) {
+      adminReminders = await adminDb
+        .collection(`users`)
+        .doc(userId)
+        .collection("reminders")
+        .withConverter(reminderConverterAdmin)
+        .where("year", "==", year)
+        .where("month", "==", month)
+        .where("day", "==", day)
+        .orderBy("dueDateTime", "desc")
+        .get();
+    } else {
+      adminReminders = await adminDb
+        .collection(`users`)
+        .doc(userId)
+        .collection("reminders")
+        .withConverter(reminderConverterAdmin)
+        .where("year", "==", year)
+        .where("month", "==", month)
+        .orderBy("dueDateTime", "desc")
+        .get();
+    }
+
+    let res: Reminder[] = [];
+    adminReminders.forEach((item) => {
+      const a = item.data();
+      res.push(a);
+    });
+
+    return res;
+  } catch (error) {
+    console.log("Error while querying as admin firestore");
+    throw error;
+  }
 }
 
 export async function getRemindersByDateNumbers(
@@ -315,7 +404,7 @@ export async function send(data: OptimisticReminder, session: Session) {
   }
 }
 
-export async function deleteReminder(id: string, session: Session) {
+export async function deleteReminder(reminder: Reminder, session: Session) {
   // console.log("Deleting reminder in firebase.");
   let firebaseLoggged = false;
   if (!auth.currentUser) {
@@ -335,13 +424,15 @@ export async function deleteReminder(id: string, session: Session) {
   if (firebaseLoggged) {
     try {
       const userRef = doc(db, "users", session.user.userId);
-      const path = `users/${userRef.id}/reminders/${id}`;
+      const path = `users/${userRef.id}/reminders/${reminder.id}`;
 
       const reminderRef = doc(db, path);
       const res = await deleteDoc(reminderRef);
+
+      revalidatePath(`/reminders`);
       return {
         code: "Success",
-        message: `Deleted document with id: ${id}`,
+        message: `Deleted document with id: ${reminder.userId}`,
         ok: true,
       };
     } catch (error) {

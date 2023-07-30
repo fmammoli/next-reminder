@@ -12,7 +12,7 @@ export default function FirebaseSessionHandler({
 }: {
   children: ReactNode;
 }) {
-  // console.log("FirebaseSessionHandler render");
+  console.log("FirebaseSessionHandler render");
   const { data: session, status, update } = useSession();
 
   const { user, isPending, completed } = useSyncFirebaseAndNextAuthSessions({

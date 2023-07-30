@@ -1,9 +1,10 @@
 import { Reminder } from "@/types/Reminder";
 import DatePicker from "./DatePicker";
-import { getRemindersByMonth } from "./_actions";
+import { getRemindersByDateNumbersAdmin } from "./_actions";
 import { getServerSession } from "next-auth";
 import { authOptions } from "./api/auth/[...nextauth]/route";
 
+let renderCount = 0;
 export default async function RemindersCalendar({
   year,
   month,
@@ -13,6 +14,8 @@ export default async function RemindersCalendar({
   month: string;
   day: string;
 }) {
+  renderCount++;
+  console.log(`ReminderCalendar Render: ${renderCount}`);
   const session = await getServerSession(authOptions);
   const logged = !!session?.user?.email || false;
 
@@ -21,11 +24,19 @@ export default async function RemindersCalendar({
   if (session) {
     try {
       if (!session.user.isAnonymous) {
-        reminders = await getRemindersByMonth(
-          parseInt(month),
+        const adminReminders = await getRemindersByDateNumbersAdmin(
           parseInt(year),
-          session
+          parseInt(month),
+          0,
+          session.user.userId
         );
+
+        reminders = adminReminders;
+        // reminders = await getRemindersByMonth(
+        //   parseInt(month),
+        //   parseInt(year),
+        //   session
+        // );
       }
     } catch (error) {
       console.log("Problem fetching reminders");
@@ -37,6 +48,7 @@ export default async function RemindersCalendar({
     <DatePicker
       reminders={reminders}
       date={new Date(`${month}/${day}/${year}`)}
+      isAnonymous={session?.user.isAnonymous ? true : false}
     ></DatePicker>
   );
 }

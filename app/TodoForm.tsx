@@ -11,7 +11,7 @@ export default function TodoForm({
   dueDate,
 }: {
   handleAdd: (newReminder: OptimisticReminder) => void;
-  session: Session | null;
+  session: Session | null | undefined;
   dueDate: Date;
 }) {
   const router = useRouter();

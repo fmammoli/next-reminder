@@ -1,11 +1,10 @@
 import Reminders from "../Reminders";
-import RemindersCalendar from "../RemindersCalendar";
+
+let count = 0;
 
 export default async function Page({
-  params,
   searchParams,
 }: {
-  params: { date: string };
   searchParams: { [key: string]: string | string[] | undefined };
 }) {
   const today = new Date();
@@ -21,17 +20,14 @@ export default async function Page({
     (searchParams["day"] as string) ??
     today.toLocaleString("pt-Br", { day: "2-digit" });
 
+  console.log(`Page rerender: ${count++}`);
+
   return (
     <main>
       {/* <div>
         <TodoForm></TodoForm>
       </div> */}
       <div className="max-w-lg mx-auto">
-        <RemindersCalendar
-          year={year}
-          month={month}
-          day={day}
-        ></RemindersCalendar>
         <Reminders month={month} year={year} day={day}></Reminders>
       </div>
     </main>
