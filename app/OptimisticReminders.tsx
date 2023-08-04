@@ -236,12 +236,7 @@ export default function OptimisticReminders({
                       ? null
                       : (item as Reminder).id
                   }
-                  dueDateTime={
-                    (item as Reminder).dueDateTime?.toString() ??
-                    parseISO(
-                      (item as SendingReminder).reminder.dueDateTime
-                    ).toString()
-                  }
+                  dueDateTime={(item as Reminder).dueDateTime?.toString()}
                   handleRemove={handleRemove}
                 ></ReminderItem>
               </div>
