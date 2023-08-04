@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { memo } from "react";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
+import { parseISO } from "date-fns";
 
 function ReminderItemOrigin({
   id,
@@ -19,6 +20,7 @@ function ReminderItemOrigin({
   sending?: boolean;
   handleRemove: (id: string) => void;
 }) {
+  console.log(dueDateTime);
   return (
     <Card className="my-4">
       <CardContent className="flex justify-between item-center pt-6">
@@ -44,7 +46,8 @@ function ReminderItemOrigin({
           <p className="font-thin">{sending ? "Sending ..." : createdAt}</p>
           <p className="font-thin">
             Due at:
-            {dueDateTime.split(" ")[4].slice(0, -3)}
+            {/* {dueDateTime.split(" ")[4].slice(0, -3)} */}
+            {parseISO(dueDateTime).toString()}
           </p>
         </div>
         {id ? (

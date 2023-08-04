@@ -10,11 +10,11 @@ import useLocalStorageState from "use-local-storage-state";
 import { deleteReminder, send } from "./_actions";
 
 import ActionButton from "./ActionButton";
-import { isSameDay } from "date-fns";
+import { isSameDay, parseISO } from "date-fns";
 import { Session } from "next-auth/core/types";
 import DatePicker from "./DatePicker";
 type SendingReminder = {
-  reminder: OptimisticReminder;
+  reminder: { text: string; createdAt: Date; dueDateTime: Date };
   sending: boolean;
 };
 
@@ -238,7 +238,9 @@ export default function OptimisticReminders({
                   }
                   dueDateTime={
                     (item as Reminder).dueDateTime?.toString() ??
-                    (item as SendingReminder).reminder.dueDateTime.toString()
+                    parseISO(
+                      (item as SendingReminder).reminder.dueDateTime
+                    ).toString()
                   }
                   handleRemove={handleRemove}
                 ></ReminderItem>
